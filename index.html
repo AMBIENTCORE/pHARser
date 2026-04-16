@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pHARser</title>
+<style>
+/* ── Theme Variables ─────────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg: #1e1e1e;
+  --surface: #252526;
+  --surface2: #2d2d2d;
+  --surface3: #333333;
+  --border: #3e3e3e;
+  --text: #cccccc;
+  --text-muted: #808080;
+  --heading: #ffffff;
+  --accent: #4CAF50;
+  --accent-hover: #43A047;
+  --accent-dim: rgba(76,175,80,0.12);
+  --green: #4CAF50;
+  --green-dim: rgba(76,175,80,0.15);
+  --orange: #FF9800;
+  --orange-dim: rgba(255,152,0,0.15);
+  --red: #F44336;
+  --red-dim: rgba(244,67,54,0.15);
+  --purple: #CE93D8;
+  --cyan: #4DD0E1;
+  --pink: #F48FB1;
+  --timing-blocked: #808080;
+  --timing-dns: #42A5F5;
+  --timing-connect: #66BB6A;
+  --timing-ssl: #CE93D8;
+  --timing-send: #FFA726;
+  --timing-wait: #EF5350;
+  --timing-receive: #26C6DA;
+  --scrollbar-thumb: #3e3e3e;
+  --scrollbar-track: transparent;
+  --sidebar-bg: #1e1e1e;
+  --header-gradient: linear-gradient(135deg, #252526 0%, #2d2d2d 100%);
+}
+[data-theme="light"] {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface2: #fafafa;
+  --surface3: #eeeeee;
+  --border: #e0e0e0;
+  --text: #424242;
+  --text-muted: #9e9e9e;
+  --heading: #212121;
+  --accent: #388E3C;
+  --accent-hover: #2E7D32;
+  --accent-dim: rgba(56,142,60,0.1);
+  --green: #388E3C;
+  --green-dim: rgba(56,142,60,0.1);
+  --orange: #F57C00;
+  --orange-dim: rgba(245,124,0,0.1);
+  --red: #D32F2F;
+  --red-dim: rgba(211,47,47,0.1);
+  --purple: #7B1FA2;
+  --cyan: #0097A7;
+  --pink: #C2185B;
+  --timing-blocked: #9e9e9e;
+  --timing-dns: #1E88E5;
+  --timing-connect: #43A047;
+  --timing-ssl: #8E24AA;
+  --timing-send: #EF6C00;
+  --timing-wait: #E53935;
+  --timing-receive: #00ACC1;
+  --scrollbar-thumb: #bdbdbd;
+  --scrollbar-track: transparent;
+  --sidebar-bg: #fafafa;
+  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+}
+
+/* ── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Header ──────────────────────────────────────────────── */
+header {
+  background: var(--header-gradient);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  flex-shrink: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+header h1 {
+  font-size: 15px; font-weight: 600; color: var(--heading); white-space: nowrap;
+  letter-spacing: -0.3px;
+}
+header .logo {
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; background: var(--accent-dim);
+  border-radius: 6px; border: 1px solid var(--accent);
+}
+.header-stats {
+  display: flex; gap: 14px; margin-left: 20px; font-size: 11px; color: var(--text-muted);
+}
+.header-stats .stat { display: flex; align-items: center; gap: 4px; }
+.header-stats .stat-val { font-weight: 600; color: var(--text); }
+.header-stats .stat-err { color: var(--red); }
+.header-stats .stat-slow { color: var(--orange); }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.btn-icon {
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.btn-icon:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+.btn-sm {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-sm:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ── Drop Zone ───────────────────────────────────────────── */
+#drop-screen {
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; padding: 24px;
+}
+#drop-screen.hidden { display: none; }
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: 16px;
+  padding: 80px 60px; text-align: center; max-width: 560px; width: 100%;
+  cursor: pointer; transition: all 0.2s;
+  background: var(--surface);
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.drop-zone .icon { font-size: 48px; margin-bottom: 16px; }
+.drop-zone h2 { font-size: 20px; color: var(--heading); margin-bottom: 8px; }
+.drop-zone p { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
+.drop-zone .formats { font-size: 12px; color: var(--text-muted); margin-top: 16px; }
+.drop-zone .formats code {
+  background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-size: 11px;
+}
+#file-input { display: none; }
+
+/* ── App Layout (post-load) ──────────────────────────────── */
+#app-screen { display: none; flex: 1; overflow: hidden; }
+#app-screen.active { display: flex; flex-direction: row; }
+
+/* ── Left Sidebar ────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  min-width: 200px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+.sidebar.collapsed {
+  width: 0;
+  min-width: 0;
+  border-right: none;
+  overflow: hidden;
+}
+.sidebar.collapsed .sidebar-content { opacity: 0; pointer-events: none; }
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+.sidebar-section h3 {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-section .search-box {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 8px; width: 100%;
+}
+.sidebar-section .search-box input {
+  background: none; border: none; color: var(--text); font-size: 12px;
+  padding: 6px 0; width: 100%; outline: none;
+}
+.sidebar-section .search-box input::placeholder { color: var(--text-muted); }
+.sidebar-section .search-box .icon { font-size: 12px; color: var(--text-muted); }
+.sidebar-select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 5px 8px; border-radius: 6px; font-size: 12px;
+  cursor: pointer; outline: none; width: 100%; margin-bottom: 6px;
+}
+.sidebar-select option { background: var(--surface); color: var(--text); }
+.quick-filter-list { display: flex; flex-direction: column; gap: 4px; }
+.filter-chip {
+  padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text-muted); transition: all 0.15s; user-select: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.filter-chip:hover { border-color: var(--accent); color: var(--text); }
+.filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.filter-chip.err { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+.filter-chip.slow { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+
+/* Summary stats in sidebar */
+.sidebar-stats { display: flex; flex-direction: column; gap: 6px; }
+.sidebar-stat {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; font-size: 12px;
+}
+.sidebar-stat .label { color: var(--text-muted); }
+.sidebar-stat .value { font-weight: 600; color: var(--heading); font-family: monospace; font-size: 12px; }
+.sidebar-stat .value.err { color: var(--red); }
+.sidebar-stat .value.warn { color: var(--orange); }
+
+/* ── Main Content Area ───────────────────────────────────── */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Summary Bar ─────────────────────────────────────────── */
+.summary-bar {
+  padding: 8px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 10px; flex-shrink: 0; overflow-x: auto;
+}
+.summary-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 14px; min-width: 110px;
+  display: flex; flex-direction: column;
+}
+.summary-card .card-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.summary-card .card-value { font-size: 16px; font-weight: 700; color: var(--heading); line-height: 1.3; }
+.summary-card .card-sub { font-size: 10px; color: var(--text-muted); }
+.summary-card.card-error .card-value { color: var(--red); }
+.summary-card.card-slow .card-value { color: var(--orange); }
+
+/* ── Content Split (table top, detail bottom) ────────────── */
+.content-split {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Request List ────────────────────────────────────────── */
+.request-list-pane {
+  flex: 1; overflow-y: auto; overflow-x: auto; min-height: 120px;
+}
+.request-table { width: 100%; border-collapse: collapse; }
+.request-table thead { position: sticky; top: 0; z-index: 5; }
+.request-table th {
+  background: var(--surface); text-align: left; padding: 7px 12px;
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border); cursor: pointer; user-select: none;
+  white-space: nowrap;
+}
+.request-table th:hover { color: var(--accent); }
+.request-table th .sort-arrow { margin-left: 4px; font-size: 10px; }
+.request-table td {
+  padding: 5px 12px; font-size: 12px; border-bottom: 1px solid var(--border);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 0;
+  vertical-align: middle;
+}
+.request-table tr { cursor: pointer; transition: background 0.1s; }
+.request-table tbody tr:hover { background: var(--surface2); }
+.request-table tbody tr.selected { background: var(--accent-dim); }
+.request-table tbody tr.error-row td:first-child { border-left: 3px solid var(--red); }
+.request-table tbody tr.slow-row td:first-child { border-left: 3px solid var(--orange); }
+
+/* Status badge */
+.status-badge {
+  display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+}
+.status-1xx { background: var(--accent-dim); color: var(--accent); }
+.status-2xx { background: var(--green-dim); color: var(--green); }
+.status-3xx { background: var(--purple); color: #fff; opacity: 0.8; }
+.status-4xx { background: var(--red-dim); color: var(--red); }
+.status-5xx { background: var(--red-dim); color: var(--red); font-weight: 700; }
+.status-0 { background: var(--surface3); color: var(--text-muted); }
+
+/* Method badge */
+.method-badge { font-weight: 600; font-size: 11px; }
+.method-GET { color: var(--green); }
+.method-POST { color: var(--accent); }
+.method-PUT { color: var(--orange); }
+.method-PATCH { color: var(--purple); }
+.method-DELETE { color: var(--red); }
+.method-OPTIONS { color: var(--text-muted); }
+.method-HEAD { color: var(--cyan); }
+
+/* Waterfall bar */
+.waterfall-cell { min-width: 200px; position: relative; }
+.waterfall-bar-container { position: relative; height: 14px; width: 100%; }
+.waterfall-bar {
+  position: absolute; height: 100%; border-radius: 2px; min-width: 1px;
+  display: flex; overflow: hidden;
+}
+.waterfall-bar .seg { height: 100%; min-width: 0; }
+.seg-blocked { background: var(--timing-blocked); }
+.seg-dns { background: var(--timing-dns); }
+.seg-connect { background: var(--timing-connect); }
+.seg-ssl { background: var(--timing-ssl); }
+.seg-send { background: var(--timing-send); }
+.seg-wait { background: var(--timing-wait); }
+.seg-receive { background: var(--timing-receive); }
+
+/* ── Horizontal Resize Handle ────────────────────────────── */
+.resize-handle-h {
+  height: 5px; cursor: row-resize; background: var(--border); flex-shrink: 0;
+  transition: background 0.15s;
+}
+.resize-handle-h:hover, .resize-handle-h.dragging { background: var(--accent); }
+
+/* ── Detail Pane (bottom) ────────────────────────────────── */
+.detail-pane {
+  height: 320px; min-height: 120px; max-height: 70vh;
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+  flex-shrink: 0;
+}
+.detail-pane.hidden { display: none; }
+.detail-header {
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2); flex-shrink: 0;
+}
+.detail-header h3 {
+  font-size: 13px; font-weight: 600; color: var(--heading);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+}
+.detail-close {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 4px;
+}
+.detail-close:hover { color: var(--text); }
+.detail-tabs {
+  display: flex; border-bottom: 1px solid var(--border); background: var(--surface);
+  flex-shrink: 0;
+}
+.detail-tab {
+  padding: 7px 16px; font-size: 12px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+  user-select: none;
+}
+.detail-tab:hover { color: var(--text); }
+.detail-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.detail-body { flex: 1; overflow-y: auto; padding: 16px; }
+.detail-section { margin-bottom: 20px; }
+.detail-section h4 {
+  font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.kv-table { width: 100%; border-collapse: collapse; }
+.kv-table td {
+  padding: 3px 8px; font-size: 12px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.kv-table .kv-key {
+  color: var(--accent); font-weight: 500; white-space: nowrap; width: 180px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+.kv-table .kv-val {
+  color: var(--text); word-break: break-all;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+.code-block {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px; font-size: 12px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+  color: var(--text); max-height: 300px; overflow-y: auto; line-height: 1.6;
+}
+
+/* ── Timing Breakdown ────────────────────────────────────── */
+.timing-chart { margin: 12px 0; }
+.timing-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.timing-label { font-size: 11px; color: var(--text-muted); width: 70px; text-align: right; }
+.timing-bar-track { flex: 1; height: 16px; background: var(--surface3); border-radius: 3px; position: relative; overflow: hidden; }
+.timing-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; min-width: 1px; }
+.timing-value { font-size: 11px; color: var(--text); width: 60px; font-family: monospace; }
+.timing-legend {
+  display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 11px; color: var(--text-muted);
+}
+.timing-legend-item { display: flex; align-items: center; gap: 4px; }
+.timing-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+.tooltip {
+  position: fixed; z-index: 1000; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3); max-width: 320px;
+  display: none;
+}
+.tooltip.visible { display: block; }
+.tooltip .tt-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.tooltip .tt-label { color: var(--text-muted); }
+.tooltip .tt-val { color: var(--text); font-weight: 500; font-family: monospace; }
+.tooltip .tt-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── No Results ──────────────────────────────────────────── */
+.no-results {
+  text-align: center; padding: 60px 24px; color: var(--text-muted);
+}
+.no-results .icon { font-size: 36px; margin-bottom: 12px; }
+.no-results p { font-size: 14px; }
+
+/* ── Highlight match ─────────────────────────────────────── */
+mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; padding: 0 1px; }
+
+/* ── Flag / Bookmark ─────────────────────────────────────── */
+.flag-cell { width: 30px; min-width: 30px; text-align: center; }
+.flag-btn {
+  background: none; border: none; cursor: pointer; font-size: 13px;
+  color: var(--text-muted); opacity: 0.3; transition: all 0.15s; padding: 2px;
+  line-height: 1;
+}
+.flag-btn:hover { opacity: 1; color: var(--orange); }
+.flag-btn.flagged { opacity: 1; color: var(--orange); }
+.request-table tbody tr.flagged-row { background: var(--orange-dim); }
+.filter-chip.flagged { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+
+/* ── Time Gap Indicator ──────────────────────────────────── */
+.time-gap-row td {
+  padding: 0 !important; border-bottom: none !important;
+  height: auto !important;
+}
+.time-gap-row:hover { background: none !important; cursor: default; }
+.time-gap-bar {
+  display: flex; align-items: center; justify-content: center;
+  padding: 2px 12px; font-size: 10px; color: var(--orange);
+  background: var(--orange-dim); border-top: 1px dashed var(--orange);
+  border-bottom: 1px dashed var(--orange); opacity: 0.8;
+  letter-spacing: 0.3px; font-weight: 600;
+}
+
+/* ── Context Menu ────────────────────────────────────────── */
+.ctx-menu {
+  position: fixed; z-index: 1100; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 4px 0; min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3); display: none;
+}
+.ctx-menu.visible { display: block; }
+.ctx-menu-item {
+  padding: 6px 14px; font-size: 12px; cursor: pointer;
+  color: var(--text); display: flex; align-items: center; gap: 8px;
+  transition: background 0.1s;
+}
+.ctx-menu-item:hover { background: var(--surface2); }
+.ctx-menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ── Insights Panel ──────────────────────────────────────── */
+.insights-panel {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-y: auto; flex-shrink: 0; max-height: 45vh;
+}
+.insights-panel.hidden { display: none; }
+.insights-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 5;
+}
+.insights-header h3 { font-size: 13px; font-weight: 600; color: var(--heading); display: flex; align-items: center; gap: 8px; }
+.insights-header .badge { font-size: 10px; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
+.insights-header .badge-err { background: var(--red-dim); color: var(--red); }
+.insights-header .badge-warn { background: var(--orange-dim); color: var(--orange); }
+.insights-header .badge-info { background: var(--accent-dim); color: var(--accent); }
+.insights-actions { display: flex; gap: 6px; }
+.insights-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.insight-card {
+  display: flex; gap: 12px; padding: 10px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface2);
+  cursor: default; transition: background 0.1s;
+}
+.insight-card:hover { background: var(--surface3); }
+.insight-card .severity-indicator {
+  width: 4px; border-radius: 4px; flex-shrink: 0;
+}
+.insight-card .severity-indicator.sev-error { background: var(--red); }
+.insight-card .severity-indicator.sev-warning { background: var(--orange); }
+.insight-card .severity-indicator.sev-info { background: var(--accent); }
+.insight-card .insight-content { flex: 1; min-width: 0; }
+.insight-card .insight-title {
+  font-size: 13px; font-weight: 600; color: var(--heading); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.insight-card .insight-title .sev-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 6px;
+  border-radius: 4px; font-weight: 700;
+}
+.sev-label.sev-error { background: var(--red-dim); color: var(--red); }
+.sev-label.sev-warning { background: var(--orange-dim); color: var(--orange); }
+.sev-label.sev-info { background: var(--accent-dim); color: var(--accent); }
+.insight-card .insight-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.insight-card .insight-refs {
+  margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;
+}
+.insight-ref {
+  font-size: 10px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); color: var(--accent);
+  font-family: monospace; transition: all 0.1s;
+}
+.insight-ref:hover { background: var(--accent-dim); border-color: var(--accent); }
+.insights-empty {
+  text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px;
+}
+.insights-empty .icon { font-size: 28px; margin-bottom: 8px; }
+.btn-copy-copilot {
+  background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent);
+  padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  font-weight: 600; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+}
+.btn-copy-copilot:hover { background: var(--accent); color: #fff; }
+.btn-toggle-insights {
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;
+  transition: all 0.15s;
+}
+.btn-toggle-insights:hover { background: var(--surface2); color: var(--text); }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { width: 0; min-width: 0; border-right: none; overflow: hidden; }
+  .sidebar .sidebar-content { opacity: 0; pointer-events: none; }
+  .detail-pane { height: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 20; }
+  .resize-handle-h { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ────────────────────────────────────────────── -->
+<header>
+  <span class="logo">🔬</span>
+  <h1>pHARser</h1>
+  <div class="header-stats" id="header-stats"></div>
+  <div class="header-right">
+    <button class="btn-sm" id="btn-new-file" style="display:none" title="Load another file">📂 New File</button>
+    <button class="btn-icon" id="btn-sidebar" style="display:none" title="Toggle sidebar (Ctrl+B)">☰</button>
+    <button class="btn-icon" id="btn-theme" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<!-- ── Drop Screen ───────────────────────────────────────── -->
+<div id="drop-screen">
+  <div class="drop-zone" id="drop-zone">
+    <div class="icon">📡</div>
+    <h2>Drop your HAR file here</h2>
+    <p>or click to browse</p>
+    <div class="formats">
+      Supports <code>.har</code> (HTTP Archive) files exported from browser DevTools, Fiddler, or similar tools.
+    </div>
+    <input type="file" id="file-input" accept=".har,.json">
+  </div>
+</div>
+
+<!-- ── App Screen ────────────────────────────────────────── -->
+<div id="app-screen">
+  <!-- Left Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-content">
+      <!-- Search -->
+      <div class="sidebar-section">
+        <h3>Search</h3>
+        <div class="search-box">
+          <span class="icon">🔍</span>
+          <input type="text" id="search-input" placeholder="URL, domain, status, body...">
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="sidebar-section">
+        <h3>Filters</h3>
+        <select class="sidebar-select" id="filter-method">
+          <option value="">All Methods</option>
+        </select>
+        <select class="sidebar-select" id="filter-status">
+          <option value="">All Status</option>
+          <option value="2xx">2xx Success</option>
+          <option value="3xx">3xx Redirect</option>
+          <option value="4xx">4xx Client Error</option>
+          <option value="5xx">5xx Server Error</option>
+        </select>
+        <select class="sidebar-select" id="filter-domain">
+          <option value="">All Domains</option>
+        </select>
+        <select class="sidebar-select" id="filter-type">
+          <option value="">All Types</option>
+        </select>
+      </div>
+
+      <!-- Quick Filters -->
+      <div class="sidebar-section">
+        <h3>Quick Filters</h3>
+        <div class="quick-filter-list" id="quick-filters">
+          <span class="filter-chip" data-filter="errors" title="Show only 4xx/5xx">❌ Errors</span>
+          <span class="filter-chip" data-filter="slow" title="Show requests > 1s">🐢 Slow (&gt;1s)</span>
+          <span class="filter-chip" data-filter="large" title="Show responses > 1MB">📦 Large (&gt;1MB)</span>
+          <span class="filter-chip" data-filter="flagged" title="Show flagged requests">🚩 Flagged</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="sidebar-section">
+        <h3>Trace Stats</h3>
+        <div class="sidebar-stats" id="sidebar-stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-area">
+    <!-- Summary Bar -->
+    <div class="summary-bar" id="summary-bar"></div>
+
+    <!-- Insights Panel -->
+    <div class="insights-panel hidden" id="insights-panel">
+      <div class="insights-header">
+        <h3>🔎 Insights <span class="badge" id="insights-badge"></span></h3>
+        <div class="insights-actions">
+          <button class="btn-copy-copilot" id="btn-copy-copilot" title="Copy findings to clipboard (PII masked) for use with Copilot">📋 Copy to Copilot</button>
+          <button class="btn-toggle-insights" id="btn-toggle-insights">Collapse</button>
+        </div>
+      </div>
+      <div class="insights-body" id="insights-body"></div>
+    </div>
+
+    <!-- Content Split: table on top, detail on bottom -->
+    <div class="content-split">
+      <!-- Request List -->
+      <div class="request-list-pane" id="request-list-pane">
+        <table class="request-table" id="request-table">
+          <thead>
+            <tr>
+              <th class="flag-cell" style="cursor:default">🚩</th>
+              <th data-sort="status" style="width:70px">Status <span class="sort-arrow"></span></th>
+              <th data-sort="method" style="width:70px">Method <span class="sort-arrow"></span></th>
+              <th data-sort="domain" style="width:160px">Domain <span class="sort-arrow"></span></th>
+              <th data-sort="path">Path <span class="sort-arrow"></span></th>
+              <th data-sort="type" style="width:80px">Type <span class="sort-arrow"></span></th>
+              <th data-sort="size" style="width:80px">Size <span class="sort-arrow"></span></th>
+              <th data-sort="time" style="width:80px">Time <span class="sort-arrow"></span></th>
+              <th class="waterfall-cell" style="width:220px">Waterfall</th>
+            </tr>
+          </thead>
+          <tbody id="request-tbody"></tbody>
+        </table>
+        <div class="no-results" id="no-results" style="display:none">
+          <div class="icon">🔍</div>
+          <p>No requests match your filters</p>
+        </div>
+      </div>
+
+      <!-- Horizontal Resize Handle -->
+      <div class="resize-handle-h" id="resize-handle"></div>
+
+      <!-- Detail Pane (bottom) -->
+      <div class="detail-pane hidden" id="detail-pane">
+        <div class="detail-header">
+          <h3 id="detail-title">Request Details</h3>
+          <button class="detail-close" id="detail-close">✕</button>
+        </div>
+        <div class="detail-tabs" id="detail-tabs">
+          <div class="detail-tab active" data-tab="headers">Headers</div>
+          <div class="detail-tab" data-tab="payload">Payload</div>
+          <div class="detail-tab" data-tab="response">Response</div>
+          <div class="detail-tab" data-tab="timing">Timing</div>
+          <div class="detail-tab" data-tab="raw">Raw</div>
+        </div>
+        <div class="detail-body" id="detail-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctx-menu"></div>
+
+<script>
+/* ================================================================
+   pHARser — Single-page HAR visualization tool
+   ================================================================ */
+(function() {
+  'use strict';
+
+  // ── State ──────────────────────────────────────────────
+  let harData = null;
+  let entries = [];
+  let filteredEntries = [];
+  let selectedEntry = null;
+  let sortCol = 'seq';
+  let sortAsc = true;
+  let activeQuickFilters = new Set();
+  let flaggedEntries = new Set();
+  const SLOW_THRESHOLD = 1000;
+  const LARGE_THRESHOLD = 1024 * 1024;
+  const GAP_THRESHOLD = 3000;
+
+  // ── DOM refs ───────────────────────────────────────────
+  const dropScreen = document.getElementById('drop-screen');
+  const appScreen = document.getElementById('app-screen');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const searchInput = document.getElementById('search-input');
+  const filterMethod = document.getElementById('filter-method');
+  const filterStatus = document.getElementById('filter-status');
+  const filterDomain = document.getElementById('filter-domain');
+  const filterType = document.getElementById('filter-type');
+  const requestTbody = document.getElementById('request-tbody');
+  const detailPane = document.getElementById('detail-pane');
+  const detailTitle = document.getElementById('detail-title');
+  const detailBody = document.getElementById('detail-body');
+  const detailTabs = document.getElementById('detail-tabs');
+  const summaryBar = document.getElementById('summary-bar');
+  const headerStats = document.getElementById('header-stats');
+  const sidebarStats = document.getElementById('sidebar-stats');
+  const noResults = document.getElementById('no-results');
+  const tooltip = document.getElementById('tooltip');
+  const btnNewFile = document.getElementById('btn-new-file');
+  const sidebar = document.getElementById('sidebar');
+  const btnSidebar = document.getElementById('btn-sidebar');
+
+  // ── Theme ──────────────────────────────────────────────
+  (function initTheme() {
+    const saved = localStorage.getItem('ntv-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+    const btn = document.getElementById('btn-theme');
+    function update() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      btn.textContent = isDark ? '🌙' : '☀️';
+    }
+    update();
+    btn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const next = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('ntv-theme', next);
+      update();
+    });
+  })();
+
+  // ── Sidebar Toggle ─────────────────────────────────────
+  btnSidebar.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    localStorage.setItem('ntv-sidebar', isCollapsed ? 'collapsed' : 'expanded');
+  });
+  (function initSidebar() {
+    const saved = localStorage.getItem('ntv-sidebar');
+    if (saved === 'collapsed') sidebar.classList.add('collapsed');
+  })();
+
+  // ── File Handling ──────────────────────────────────────
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+
+  document.body.addEventListener('dragover', (e) => e.preventDefault());
+  document.body.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+
+  btnNewFile.addEventListener('click', resetView);
+
+  function resetView() {
+    harData = null; entries = []; filteredEntries = []; selectedEntry = null;
+    sortCol = 'seq'; sortAsc = true; activeQuickFilters.clear();
+    dropScreen.classList.remove('hidden');
+    dropScreen.style.display = '';
+    appScreen.classList.remove('active');
+    appScreen.style.display = 'none';
+    btnNewFile.style.display = 'none';
+    btnSidebar.style.display = 'none';
+    headerStats.innerHTML = '';
+    sidebarStats.innerHTML = '';
+    requestTbody.innerHTML = '';
+    detailPane.classList.add('hidden');
+    insightsPanel.classList.add('hidden');
+    currentInsights = [];
+    flaggedEntries.clear();
+    searchInput.value = '';
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
+    fileInput.value = '';
+  }
+
+  async function loadFile(file) {
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      if (!json.log || !json.log.entries) {
+        alert('Invalid HAR file: missing log.entries');
+        return;
+      }
+      harData = json;
+      processHar(json, file.name);
+    } catch (err) {
+      alert('Error reading file: ' + err.message);
+    }
+  }
+
+  // ── Process HAR ────────────────────────────────────────
+  function processHar(har, fileName) {
+    const raw = har.log.entries || [];
+    let earliest = Infinity;
+    raw.forEach(e => {
+      const t = new Date(e.startedDateTime).getTime();
+      if (t < earliest) earliest = t;
+    });
+
+    entries = raw.map((e, i) => {
+      const url = parseUrl(e.request.url);
+      const status = e.response.status;
+      const size = e.response.content ? (e.response.content.size || 0) : 0;
+      const bodySize = e.response.bodySize > 0 ? e.response.bodySize : size;
+      const mimeType = e.response.content ? (e.response.content.mimeType || '') : '';
+      const time = e.time || 0;
+      const startMs = new Date(e.startedDateTime).getTime() - earliest;
+
+      return {
+        seq: i,
+        raw: e,
+        method: e.request.method,
+        url: e.request.url,
+        domain: url.hostname,
+        path: url.pathname + url.search,
+        status: status,
+        statusText: e.response.statusText || '',
+        size: bodySize,
+        mimeType: mimeType,
+        resourceType: guessType(mimeType, url.pathname),
+        time: time,
+        timings: normalizeTimings(e.timings),
+        startMs: startMs,
+        requestHeaders: e.request.headers || [],
+        responseHeaders: e.response.headers || [],
+        requestBody: e.request.postData || null,
+        responseBody: e.response.content || null,
+        serverIP: e.serverIPAddress || '',
+        connection: e.connection || '',
+      };
+    });
+
+    showApp(fileName);
+  }
+
+  function parseUrl(urlStr) {
+    try { return new URL(urlStr); }
+    catch { return { hostname: '', pathname: urlStr, search: '' }; }
+  }
+
+  function normalizeTimings(t) {
+    if (!t) return { blocked: 0, dns: 0, connect: 0, ssl: 0, send: 0, wait: 0, receive: 0 };
+    return {
+      blocked: Math.max(0, t.blocked || 0),
+      dns: Math.max(0, t.dns || 0),
+      connect: Math.max(0, t.connect || 0),
+      ssl: Math.max(0, t.ssl || 0),
+      send: Math.max(0, t.send || 0),
+      wait: Math.max(0, t.wait || 0),
+      receive: Math.max(0, t.receive || 0),
+    };
+  }
+
+  function guessType(mime, path) {
+    if (!mime && !path) return 'other';
+    const m = (mime || '').toLowerCase();
+    const p = (path || '').toLowerCase();
+    if (m.includes('html')) return 'html';
+    if (m.includes('javascript') || p.endsWith('.js') || p.endsWith('.mjs')) return 'js';
+    if (m.includes('css') || p.endsWith('.css')) return 'css';
+    if (m.includes('json') || p.endsWith('.json')) return 'json';
+    if (m.includes('xml') || p.endsWith('.xml')) return 'xml';
+    if (m.includes('image')) return 'image';
+    if (m.includes('font') || m.includes('woff') || m.includes('ttf')) return 'font';
+    if (m.includes('video') || m.includes('audio') || m.includes('media')) return 'media';
+    if (m.includes('text')) return 'text';
+    return 'other';
+  }
+
+  // ── Show App ───────────────────────────────────────────
+  function showApp(fileName) {
+    dropScreen.classList.add('hidden');
+    dropScreen.style.display = 'none';
+    appScreen.classList.add('active');
+    appScreen.style.display = '';
+    btnNewFile.style.display = '';
+    btnSidebar.style.display = '';
+
+    populateFilterOptions();
+    renderSummary(fileName);
+    applyFilters();
+    runInsightsEngine();
+  }
+
+  // ── Filter Options ─────────────────────────────────────
+  function populateFilterOptions() {
+    const methods = [...new Set(entries.map(e => e.method))].sort();
+    filterMethod.innerHTML = '<option value="">All Methods</option>' +
+      methods.map(m => `<option value="${m}">${m}</option>`).join('');
+
+    const domains = [...new Set(entries.map(e => e.domain))].filter(Boolean).sort();
+    filterDomain.innerHTML = '<option value="">All Domains (' + domains.length + ')</option>' +
+      domains.map(d => `<option value="${esc(d)}">${truncate(d, 30)}</option>`).join('');
+
+    const types = [...new Set(entries.map(e => e.resourceType))].sort();
+    filterType.innerHTML = '<option value="">All Types</option>' +
+      types.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+
+  // ── Summary ────────────────────────────────────────────
+  function renderSummary(fileName) {
+    const total = entries.length;
+    const errors = entries.filter(e => e.status >= 400).length;
+    const slow = entries.filter(e => e.time >= SLOW_THRESHOLD).length;
+    const totalSize = entries.reduce((s, e) => s + e.size, 0);
+    const totalTime = entries.length ? Math.max(...entries.map(e => e.startMs + e.time)) : 0;
+    const avgTime = entries.length ? (entries.reduce((s, e) => s + e.time, 0) / entries.length) : 0;
+    const p95 = percentile(entries.map(e => e.time), 95);
+    const domains = [...new Set(entries.map(e => e.domain))].filter(Boolean);
+
+    summaryBar.innerHTML = `
+      <div class="summary-card"><span class="card-label">Requests</span><span class="card-value">${total}</span><span class="card-sub">${esc(fileName)}</span></div>
+      <div class="summary-card ${errors ? 'card-error' : ''}"><span class="card-label">Errors</span><span class="card-value">${errors}</span><span class="card-sub">${errors ? ((errors/total*100).toFixed(1) + '% error rate') : 'No errors'}</span></div>
+      <div class="summary-card ${slow ? 'card-slow' : ''}"><span class="card-label">Slow (&gt;1s)</span><span class="card-value">${slow}</span><span class="card-sub">${slow ? ((slow/total*100).toFixed(1) + '% of requests') : 'All fast'}</span></div>
+      <div class="summary-card"><span class="card-label">Total Size</span><span class="card-value">${formatSize(totalSize)}</span><span class="card-sub">${entries.length} responses</span></div>
+      <div class="summary-card"><span class="card-label">Total Time</span><span class="card-value">${formatMs(totalTime)}</span><span class="card-sub">Start to finish</span></div>
+      <div class="summary-card"><span class="card-label">Avg Latency</span><span class="card-value">${formatMs(avgTime)}</span><span class="card-sub">P95: ${formatMs(p95)}</span></div>
+    `;
+
+    headerStats.innerHTML = `
+      <span class="stat"><span class="stat-val">${total}</span> requests</span>
+      ${errors ? `<span class="stat"><span class="stat-val stat-err">${errors}</span> errors</span>` : ''}
+      ${slow ? `<span class="stat"><span class="stat-val stat-slow">${slow}</span> slow</span>` : ''}
+    `;
+
+    sidebarStats.innerHTML = `
+      <div class="sidebar-stat"><span class="label">Total Requests</span><span class="value">${total}</span></div>
+      <div class="sidebar-stat"><span class="label">Errors (4xx/5xx)</span><span class="value ${errors ? 'err' : ''}">${errors}</span></div>
+      <div class="sidebar-stat"><span class="label">Slow (&gt;1s)</span><span class="value ${slow ? 'warn' : ''}">${slow}</span></div>
+      <div class="sidebar-stat"><span class="label">Domains</span><span class="value">${domains.length}</span></div>
+      <div class="sidebar-stat"><span class="label">Total Size</span><span class="value">${formatSize(totalSize)}</span></div>
+      <div class="sidebar-stat"><span class="label">Total Time</span><span class="value">${formatMs(totalTime)}</span></div>
+      <div class="sidebar-stat"><span class="label">Avg Latency</span><span class="value">${formatMs(avgTime)}</span></div>
+      <div class="sidebar-stat"><span class="label">P95 Latency</span><span class="value">${formatMs(p95)}</span></div>
+    `;
+  }
+
+  function percentile(arr, p) {
+    if (!arr.length) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const idx = Math.ceil(p / 100 * sorted.length) - 1;
+    return sorted[Math.max(0, idx)];
+  }
+
+  // ── Filtering ──────────────────────────────────────────
+  searchInput.addEventListener('input', applyFilters);
+  filterMethod.addEventListener('change', applyFilters);
+  filterStatus.addEventListener('change', applyFilters);
+  filterDomain.addEventListener('change', applyFilters);
+  filterType.addEventListener('change', applyFilters);
+
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const f = chip.dataset.filter;
+      if (activeQuickFilters.has(f)) { activeQuickFilters.delete(f); chip.classList.remove('active'); }
+      else { activeQuickFilters.add(f); chip.classList.add('active'); }
+      if (f === 'errors') chip.classList.toggle('err', activeQuickFilters.has(f));
+      if (f === 'slow') chip.classList.toggle('slow', activeQuickFilters.has(f));
+      if (f === 'flagged') chip.classList.toggle('flagged', activeQuickFilters.has(f));
+      applyFilters();
+    });
+  });
+
+  function applyFilters() {
+    const q = searchInput.value.toLowerCase().trim();
+    const method = filterMethod.value;
+    const statusGroup = filterStatus.value;
+    const domain = filterDomain.value;
+    const type = filterType.value;
+
+    filteredEntries = entries.filter(e => {
+      if (q && !(e.url.toLowerCase().includes(q) || e.domain.toLowerCase().includes(q) ||
+                  String(e.status).includes(q) || e.method.toLowerCase().includes(q) ||
+                  e.resourceType.toLowerCase().includes(q) ||
+                  (e.responseBody && e.responseBody.text && e.responseBody.text.toLowerCase().includes(q)) ||
+                  (e.requestBody && e.requestBody.text && e.requestBody.text.toLowerCase().includes(q)) ||
+                  e.requestHeaders.some(h => h.value.toLowerCase().includes(q)) ||
+                  e.responseHeaders.some(h => h.value.toLowerCase().includes(q)))) return false;
+      if (method && e.method !== method) return false;
+      if (statusGroup) {
+        const group = Math.floor(e.status / 100) + 'xx';
+        if (group !== statusGroup) return false;
+      }
+      if (domain && e.domain !== domain) return false;
+      if (type && e.resourceType !== type) return false;
+      if (activeQuickFilters.has('errors') && e.status < 400) return false;
+      if (activeQuickFilters.has('slow') && e.time < SLOW_THRESHOLD) return false;
+      if (activeQuickFilters.has('large') && e.size < LARGE_THRESHOLD) return false;
+      if (activeQuickFilters.has('flagged') && !flaggedEntries.has(e.seq)) return false;
+      return true;
+    });
+
+    sortEntries();
+    renderTable();
+  }
+
+  // ── Sorting ────────────────────────────────────────────
+  document.querySelectorAll('.request-table th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (sortCol === col) sortAsc = !sortAsc;
+      else { sortCol = col; sortAsc = true; }
+      document.querySelectorAll('.request-table th .sort-arrow').forEach(s => s.textContent = '');
+      th.querySelector('.sort-arrow').textContent = sortAsc ? ' ▲' : ' ▼';
+      sortEntries();
+      renderTable();
+    });
+  });
+
+  function sortEntries() {
+    filteredEntries.sort((a, b) => {
+      let va, vb;
+      switch (sortCol) {
+        case 'status': va = a.status; vb = b.status; break;
+        case 'method': va = a.method; vb = b.method; break;
+        case 'domain': va = a.domain; vb = b.domain; break;
+        case 'path': va = a.path; vb = b.path; break;
+        case 'type': va = a.resourceType; vb = b.resourceType; break;
+        case 'size': va = a.size; vb = b.size; break;
+        case 'time': va = a.time; vb = b.time; break;
+        default: va = a.seq; vb = b.seq;
+      }
+      if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+      if (va < vb) return sortAsc ? -1 : 1;
+      if (va > vb) return sortAsc ? 1 : -1;
+      return a.seq - b.seq;
+    });
+  }
+
+  // ── Render Table ───────────────────────────────────────
+  function renderTable() {
+    if (filteredEntries.length === 0) {
+      requestTbody.innerHTML = '';
+      noResults.style.display = '';
+      return;
+    }
+    noResults.style.display = 'none';
+
+    const maxEnd = Math.max(...filteredEntries.map(e => e.startMs + e.time), 1);
+
+    // Sort by seq for gap detection
+    const seqSorted = [...filteredEntries].sort((a, b) => a.seq - b.seq);
+    const gapsBefore = new Set();
+    const gapAmounts = {};
+    for (let i = 1; i < seqSorted.length; i++) {
+      const prevEnd = seqSorted[i - 1].startMs + seqSorted[i - 1].time;
+      const gap = seqSorted[i].startMs - prevEnd;
+      if (gap >= GAP_THRESHOLD) {
+        gapsBefore.add(seqSorted[i].seq);
+        gapAmounts[seqSorted[i].seq] = gap;
+      }
+    }
+
+    const fragment = document.createDocumentFragment();
+    filteredEntries.forEach(e => {
+      // Insert time gap indicator row if applicable
+      if (gapsBefore.has(e.seq)) {
+        const gapTr = document.createElement('tr');
+        gapTr.classList.add('time-gap-row');
+        gapTr.innerHTML = `<td colspan="9"><div class="time-gap-bar">⏱ ${formatMs(gapAmounts[e.seq])} gap</div></td>`;
+        fragment.appendChild(gapTr);
+      }
+
+      const tr = document.createElement('tr');
+      if (e.status >= 400) tr.classList.add('error-row');
+      else if (e.time >= SLOW_THRESHOLD) tr.classList.add('slow-row');
+      if (flaggedEntries.has(e.seq)) tr.classList.add('flagged-row');
+      if (selectedEntry === e) tr.classList.add('selected');
+
+      const isFlagged = flaggedEntries.has(e.seq);
+      tr.innerHTML = `
+        <td class="flag-cell"><button class="flag-btn${isFlagged ? ' flagged' : ''}" data-seq="${e.seq}" title="Toggle flag">${isFlagged ? '🚩' : '⚑'}</button></td>
+        <td><span class="status-badge status-${statusClass(e.status)}">${e.status || '—'}</span></td>
+        <td><span class="method-badge method-${e.method}">${e.method}</span></td>
+        <td title="${esc(e.domain)}">${esc(e.domain)}</td>
+        <td title="${esc(e.path)}">${esc(truncate(e.path, 80))}</td>
+        <td>${e.resourceType}</td>
+        <td>${formatSize(e.size)}</td>
+        <td>${formatMs(e.time)}</td>
+        <td class="waterfall-cell">${renderWaterfallBar(e, maxEnd)}</td>
+      `;
+
+      // Flag button click
+      tr.querySelector('.flag-btn').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        toggleFlag(e.seq);
+      });
+
+      tr.addEventListener('click', () => selectEntry(e, tr));
+
+      // Right-click context menu
+      tr.addEventListener('contextmenu', (ev) => {
+        ev.preventDefault();
+        showContextMenu(ev, e);
+      });
+
+      const wfCell = tr.querySelector('.waterfall-cell');
+      wfCell.addEventListener('mouseenter', (ev) => showTimingTooltip(e, ev));
+      wfCell.addEventListener('mousemove', (ev) => positionTooltip(ev));
+      wfCell.addEventListener('mouseleave', hideTooltip);
+
+      fragment.appendChild(tr);
+    });
+
+    requestTbody.innerHTML = '';
+    requestTbody.appendChild(fragment);
+  }
+
+  function statusClass(s) {
+    if (!s || s === 0) return '0';
+    if (s < 200) return '1xx';
+    if (s < 300) return '2xx';
+    if (s < 400) return '3xx';
+    if (s < 500) return '4xx';
+    return '5xx';
+  }
+
+  function renderWaterfallBar(entry, maxEnd) {
+    if (maxEnd <= 0) return '';
+    const pct = (v) => (v / maxEnd * 100).toFixed(2);
+    const left = pct(entry.startMs);
+    const t = entry.timings;
+    const total = t.blocked + t.dns + t.connect + t.ssl + t.send + t.wait + t.receive;
+    const width = total > 0 ? pct(total) : pct(Math.max(entry.time, 1));
+
+    if (total <= 0) {
+      return `<div class="waterfall-bar-container"><div class="waterfall-bar" style="left:${left}%;width:${pct(Math.max(entry.time,1))}%"><div class="seg seg-wait" style="width:100%"></div></div></div>`;
+    }
+
+    const segs = ['blocked','dns','connect','ssl','send','wait','receive']
+      .filter(k => t[k] > 0)
+      .map(k => `<div class="seg seg-${k}" style="width:${(t[k]/total*100).toFixed(1)}%"></div>`)
+      .join('');
+
+    return `<div class="waterfall-bar-container"><div class="waterfall-bar" style="left:${left}%;width:${width}%">${segs}</div></div>`;
+  }
+
+  // ── Tooltip ────────────────────────────────────────────
+  function showTimingTooltip(entry, ev) {
+    const t = entry.timings;
+    const phases = [
+      { label: 'Blocked', val: t.blocked, cls: 'timing-blocked' },
+      { label: 'DNS', val: t.dns, cls: 'timing-dns' },
+      { label: 'Connect', val: t.connect, cls: 'timing-connect' },
+      { label: 'SSL', val: t.ssl, cls: 'timing-ssl' },
+      { label: 'Send', val: t.send, cls: 'timing-send' },
+      { label: 'Wait (TTFB)', val: t.wait, cls: 'timing-wait' },
+      { label: 'Receive', val: t.receive, cls: 'timing-receive' },
+    ].filter(p => p.val > 0);
+
+    let html = phases.map(p =>
+      `<div class="tt-row"><span class="tt-swatch" style="background:var(--${p.cls})"></span><span class="tt-label">${p.label}</span><span class="tt-val">${formatMs(p.val)}</span></div>`
+    ).join('');
+    html += `<div class="tt-row" style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px"><span class="tt-label" style="font-weight:600">Total</span><span class="tt-val">${formatMs(entry.time)}</span></div>`;
+
+    tooltip.innerHTML = html;
+    tooltip.classList.add('visible');
+    positionTooltip(ev);
+  }
+
+  function positionTooltip(ev) {
+    let x = ev.clientX + 12, y = ev.clientY + 12;
+    const rect = tooltip.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = ev.clientX - rect.width - 12;
+    if (y + rect.height > window.innerHeight) y = ev.clientY - rect.height - 12;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+
+  function hideTooltip() { tooltip.classList.remove('visible'); }
+
+  // ── Select Entry / Detail Pane ─────────────────────────
+  let activeTab = 'headers';
+
+  function selectEntry(entry, tr) {
+    selectedEntry = entry;
+    requestTbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+    if (tr) tr.classList.add('selected');
+
+    detailPane.classList.remove('hidden');
+    detailTitle.textContent = `${entry.method} ${truncate(entry.path, 60)}`;
+    renderDetailTab(activeTab);
+  }
+
+  detailTabs.addEventListener('click', (e) => {
+    const tab = e.target.closest('.detail-tab');
+    if (!tab) return;
+    activeTab = tab.dataset.tab;
+    detailTabs.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderDetailTab(activeTab);
+  });
+
+  document.getElementById('detail-close').addEventListener('click', () => {
+    detailPane.classList.add('hidden');
+    selectedEntry = null;
+    requestTbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+  });
+
+  function renderDetailTab(tab) {
+    if (!selectedEntry) return;
+    const e = selectedEntry;
+    let html = '';
+    switch (tab) {
+      case 'headers': html = renderHeadersTab(e); break;
+      case 'payload': html = renderPayloadTab(e); break;
+      case 'response': html = renderResponseTab(e); break;
+      case 'timing': html = renderTimingTab(e); break;
+      case 'raw': html = renderRawTab(e); break;
+    }
+    detailBody.innerHTML = html;
+  }
+
+  function renderHeadersTab(e) {
+    let html = `<div class="detail-section"><h4>General</h4>`;
+    html += kvTable([
+      ['Request URL', e.url],
+      ['Request Method', e.method],
+      ['Status Code', `${e.status} ${e.statusText}`],
+      ['Remote Address', e.serverIP || '—'],
+      ['Connection', e.connection || '—'],
+    ]);
+    html += `</div>`;
+
+    html += `<div class="detail-section"><h4>Response Headers (${e.responseHeaders.length})</h4>`;
+    html += kvTable(e.responseHeaders.map(h => [h.name, h.value]));
+    html += `</div>`;
+
+    html += `<div class="detail-section"><h4>Request Headers (${e.requestHeaders.length})</h4>`;
+    html += kvTable(e.requestHeaders.map(h => [h.name, h.value]));
+    html += `</div>`;
+
+    return html;
+  }
+
+  function renderPayloadTab(e) {
+    if (!e.requestBody) return '<div class="no-results"><div class="icon">📭</div><p>No request payload</p></div>';
+
+    let html = `<div class="detail-section"><h4>Request Body</h4>`;
+    html += `<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">MIME: ${esc(e.requestBody.mimeType || '—')}</p>`;
+
+    const text = e.requestBody.text || '';
+    if (text) {
+      const formatted = tryFormatJson(text);
+      html += `<div class="code-block">${esc(formatted)}</div>`;
+    }
+
+    if (e.requestBody.params && e.requestBody.params.length) {
+      html += `<h4 style="margin-top:16px">Form Parameters</h4>`;
+      html += kvTable(e.requestBody.params.map(p => [p.name, p.value || '']));
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  function renderResponseTab(e) {
+    const content = e.responseBody;
+    if (!content || (!content.text && !content.size)) {
+      return '<div class="no-results"><div class="icon">📭</div><p>No response body captured</p></div>';
+    }
+
+    let html = `<div class="detail-section">`;
+    html += `<h4>Response Body</h4>`;
+    html += `<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">MIME: ${esc(content.mimeType || '—')} · Size: ${formatSize(content.size || 0)}</p>`;
+
+    if (content.text) {
+      const formatted = tryFormatJson(content.text);
+      html += `<div class="code-block">${esc(formatted)}</div>`;
+    } else {
+      html += `<p style="color:var(--text-muted);font-size:13px">Response body was not captured in the HAR file</p>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  function renderTimingTab(e) {
+    const t = e.timings;
+    const phases = [
+      { key: 'blocked', label: 'Blocked', color: 'var(--timing-blocked)' },
+      { key: 'dns', label: 'DNS Lookup', color: 'var(--timing-dns)' },
+      { key: 'connect', label: 'Connect', color: 'var(--timing-connect)' },
+      { key: 'ssl', label: 'SSL/TLS', color: 'var(--timing-ssl)' },
+      { key: 'send', label: 'Send', color: 'var(--timing-send)' },
+      { key: 'wait', label: 'Wait (TTFB)', color: 'var(--timing-wait)' },
+      { key: 'receive', label: 'Receive', color: 'var(--timing-receive)' },
+    ];
+
+    const maxPhase = Math.max(...phases.map(p => t[p.key]), 1);
+
+    let html = `<div class="detail-section"><h4>Timing Breakdown</h4>`;
+    html += `<div class="timing-chart">`;
+    phases.forEach(p => {
+      const v = t[p.key];
+      const pct = (v / maxPhase * 100).toFixed(1);
+      html += `<div class="timing-row">
+        <span class="timing-label">${p.label}</span>
+        <div class="timing-bar-track"><div class="timing-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+        <span class="timing-value">${formatMs(v)}</span>
+      </div>`;
+    });
+    html += `</div>`;
+
+    const total = phases.reduce((s, p) => s + t[p.key], 0);
+    html += `<p style="font-size:13px;margin-top:12px;color:var(--heading);font-weight:600">Total: ${formatMs(total)}</p>`;
+
+    html += `<div class="timing-legend">`;
+    phases.filter(p => t[p.key] > 0).forEach(p => {
+      html += `<span class="timing-legend-item"><span class="timing-legend-swatch" style="background:${p.color}"></span>${p.label}</span>`;
+    });
+    html += `</div>`;
+
+    if (e.serverIP) {
+      html += `<div class="detail-section" style="margin-top:20px"><h4>Connection</h4>`;
+      html += kvTable([['Server IP', e.serverIP], ['Connection ID', e.connection || '—']]);
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  function renderRawTab(e) {
+    let html = `<div class="detail-section"><h4>Raw HAR Entry</h4>`;
+    html += `<div class="code-block">${esc(JSON.stringify(e.raw, null, 2))}</div>`;
+    html += `</div>`;
+    return html;
+  }
+
+  // ── Resize Handle (horizontal — bottom detail pane) ────
+  (function initResize() {
+    const handle = document.getElementById('resize-handle');
+    let dragging = false, startY, startH;
+    handle.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startH = detailPane.offsetHeight;
+      handle.classList.add('dragging');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const diff = startY - e.clientY;
+      const newH = Math.max(120, Math.min(window.innerHeight * 0.7, startH + diff));
+      detailPane.style.height = newH + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        handle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  })();
+
+  // ── Keyboard shortcuts ─────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !detailPane.classList.contains('hidden')) {
+      detailPane.classList.add('hidden');
+      selectedEntry = null;
+      requestTbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+    }
+    if ((e.key === '/' || (e.ctrlKey && e.key === 'f')) && document.activeElement !== searchInput) {
+      if (!appScreen.classList.contains('active')) return;
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'b' && e.ctrlKey && appScreen.classList.contains('active')) {
+      e.preventDefault();
+      sidebar.classList.toggle('collapsed');
+    }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && selectedEntry && appScreen.classList.contains('active')) {
+      e.preventDefault();
+      const idx = filteredEntries.indexOf(selectedEntry);
+      const next = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+      if (next >= 0 && next < filteredEntries.length) {
+        const rows = requestTbody.querySelectorAll('tr');
+        selectEntry(filteredEntries[next], rows[next]);
+        rows[next].scrollIntoView({ block: 'nearest' });
+      }
+    }
+  });
+
+  // ── Heuristic Insights Engine ──────────────────────────
+  const insightsPanel = document.getElementById('insights-panel');
+  const insightsBody = document.getElementById('insights-body');
+  const insightsBadge = document.getElementById('insights-badge');
+  const btnCopyCopilot = document.getElementById('btn-copy-copilot');
+  const btnToggleInsights = document.getElementById('btn-toggle-insights');
+
+  let currentInsights = [];
+
+  function runInsightsEngine() {
+    currentInsights = [];
+    detectFailedRequests();
+    detectAuthCascades();
+    detectRedirectLoops();
+    detectCorsIssues();
+    detectRateLimiting();
+    detectSSLIssues();
+    detectTimeouts();
+    detectSlowRequests();
+    detectLargePayloads();
+    detectMixedContent();
+    detectAuthTokenChanges();
+    detectTimeGaps();
+    renderInsights();
+  }
+
+  function addInsight(severity, title, desc, refs) {
+    currentInsights.push({ severity, title, desc, refs: refs || [] });
+  }
+
+  function detectFailedRequests() {
+    const s5 = entries.filter(e => e.status >= 500);
+    const s4 = entries.filter(e => e.status >= 400 && e.status < 500);
+    const s0 = entries.filter(e => e.status === 0);
+    if (s5.length) addInsight('error', `${s5.length} server error(s) (5xx)`, `Server-side failures detected. Status codes: ${[...new Set(s5.map(e=>e.status))].join(', ')}. Check server logs for root cause.`, s5.map(e=>e.seq));
+    if (s4.length > 3) addInsight('warning', `${s4.length} client error(s) (4xx)`, `Multiple client errors. Codes: ${[...new Set(s4.map(e=>e.status))].join(', ')}. May indicate misconfigured requests or expired auth.`, s4.map(e=>e.seq));
+    if (s0.length) addInsight('error', `${s0.length} aborted/blocked request(s)`, `Requests with status 0 — typically blocked by CORS, network failure, or browser extension.`, s0.map(e=>e.seq));
+  }
+
+  function detectAuthCascades() {
+    for (let i = 0; i < entries.length - 2; i++) {
+      const e = entries[i];
+      if (e.status === 401 || e.status === 403) {
+        const next = entries.slice(i+1, i+5);
+        const redirect = next.find(n => n.status >= 300 && n.status < 400);
+        const token = next.find(n => n.url.toLowerCase().includes('token') || n.url.toLowerCase().includes('oauth') || n.url.toLowerCase().includes('auth'));
+        if (redirect || token) {
+          addInsight('warning', 'Auth cascade detected', `Request #${e.seq} returned ${e.status}, followed by auth redirect/token refresh. If this repeats, tokens may be expiring prematurely.`, [e.seq, ...(redirect ? [redirect.seq] : []), ...(token ? [token.seq] : [])]);
+          i += 4;
+        }
+      }
+    }
+  }
+
+  function detectRedirectLoops() {
+    const redirects = entries.filter(e => e.status >= 300 && e.status < 400);
+    const chains = {};
+    redirects.forEach(e => {
+      const loc = (e.responseHeaders.find(h => h.name.toLowerCase() === 'location') || {}).value || '';
+      const key = e.domain;
+      if (!chains[key]) chains[key] = [];
+      chains[key].push(e.seq);
+    });
+    Object.entries(chains).forEach(([domain, seqs]) => {
+      if (seqs.length >= 4) addInsight('error', `Redirect chain on ${domain}`, `${seqs.length} consecutive redirects from this domain — possible redirect loop.`, seqs);
+    });
+  }
+
+  function detectCorsIssues() {
+    const preflight = entries.filter(e => e.method === 'OPTIONS');
+    const failed = preflight.filter(e => e.status === 0 || e.status >= 400);
+    if (failed.length) addInsight('error', `${failed.length} CORS preflight failure(s)`, `OPTIONS requests failed — cross-origin requests will be blocked. Check Access-Control-Allow-Origin headers on the server.`, failed.map(e=>e.seq));
+    const noCorsPairs = entries.filter(e => e.status === 0 && e.method !== 'OPTIONS');
+    if (noCorsPairs.length && !failed.length) addInsight('warning', 'Possible CORS blocks', `${noCorsPairs.length} request(s) returned status 0 without preflight failures — may be CORS-related.`, noCorsPairs.map(e=>e.seq));
+  }
+
+  function detectRateLimiting() {
+    const limited = entries.filter(e => e.status === 429);
+    if (limited.length) addInsight('warning', `Rate limiting detected (${limited.length}x 429)`, `Server is throttling requests. Check Retry-After headers and reduce request frequency.`, limited.map(e=>e.seq));
+  }
+
+  function detectSSLIssues() {
+    const slowSSL = entries.filter(e => e.timings.ssl > 500);
+    if (slowSSL.length) addInsight('info', `${slowSSL.length} slow SSL/TLS handshake(s)`, `SSL negotiation took >500ms. Could indicate certificate chain issues or slow intermediaries.`, slowSSL.map(e=>e.seq));
+  }
+
+  function detectTimeouts() {
+    const timedOut = entries.filter(e => e.time > 30000);
+    if (timedOut.length) addInsight('error', `${timedOut.length} request(s) likely timed out`, `Requests took >30s — probable timeout. Check server responsiveness and network conditions.`, timedOut.map(e=>e.seq));
+  }
+
+  function detectSlowRequests() {
+    const slow = entries.filter(e => e.time >= SLOW_THRESHOLD && e.time < 30000);
+    if (slow.length > 5) {
+      const slowDomains = {};
+      slow.forEach(e => { slowDomains[e.domain] = (slowDomains[e.domain]||0)+1; });
+      const worst = Object.entries(slowDomains).sort((a,b)=>b[1]-a[1])[0];
+      addInsight('warning', `${slow.length} slow requests (>1s)`, `Worst offender: ${worst[0]} (${worst[1]} slow requests). High wait times may indicate backend performance issues.`, slow.slice(0,10).map(e=>e.seq));
+    }
+  }
+
+  function detectLargePayloads() {
+    const large = entries.filter(e => e.size > LARGE_THRESHOLD);
+    if (large.length) {
+      const totalBig = large.reduce((s,e) => s + e.size, 0);
+      addInsight('info', `${large.length} large response(s) (>1MB)`, `Total: ${formatSize(totalBig)}. Consider compression or pagination to reduce payload sizes.`, large.map(e=>e.seq));
+    }
+  }
+
+  function detectMixedContent() {
+    const httpInHttps = entries.filter(e => {
+      try { const u = new URL(e.url); return u.protocol === 'http:'; } catch { return false; }
+    });
+    const httpsPresent = entries.some(e => { try { return new URL(e.url).protocol === 'https:'; } catch { return false; } });
+    if (httpInHttps.length && httpsPresent) addInsight('warning', `${httpInHttps.length} insecure (HTTP) request(s)`, `Mixed content detected — HTTP requests alongside HTTPS may be blocked by browsers.`, httpInHttps.map(e=>e.seq));
+  }
+
+  function renderInsights() {
+    if (!currentInsights.length) {
+      insightsBody.innerHTML = '<div class="insights-empty"><div class="icon">✅</div><p>No issues detected — trace looks healthy</p></div>';
+      insightsBadge.textContent = '✓';
+      insightsBadge.className = 'badge badge-info';
+    } else {
+      const errs = currentInsights.filter(i => i.severity === 'error').length;
+      const warns = currentInsights.filter(i => i.severity === 'warning').length;
+      const infos = currentInsights.filter(i => i.severity === 'info').length;
+      let badgeText = [];
+      if (errs) badgeText.push(errs + ' error' + (errs>1?'s':''));
+      if (warns) badgeText.push(warns + ' warning' + (warns>1?'s':''));
+      if (infos) badgeText.push(infos + ' info');
+      insightsBadge.textContent = badgeText.join(' · ');
+      insightsBadge.className = 'badge ' + (errs ? 'badge-err' : warns ? 'badge-warn' : 'badge-info');
+
+      insightsBody.innerHTML = currentInsights.map((ins, idx) => {
+        const refsHtml = ins.refs.length ? `<div class="insight-refs">${ins.refs.map(seq => `<span class="insight-ref" data-seq="${seq}">#${seq}</span>`).join('')}</div>` : '';
+        return `<div class="insight-card">
+          <div class="severity-indicator sev-${ins.severity}"></div>
+          <div class="insight-content">
+            <div class="insight-title"><span class="sev-label sev-${ins.severity}">${ins.severity}</span>${esc(ins.title)}</div>
+            <div class="insight-desc">${esc(ins.desc)}</div>
+            ${refsHtml}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    insightsPanel.classList.remove('hidden');
+
+    // Click refs to jump to request
+    insightsBody.querySelectorAll('.insight-ref').forEach(ref => {
+      ref.addEventListener('click', () => {
+        const seq = parseInt(ref.dataset.seq);
+        const entry = entries.find(e => e.seq === seq);
+        if (!entry) return;
+        // Make sure entry is visible in table
+        const idx = filteredEntries.indexOf(entry);
+        if (idx === -1) {
+          // Clear filters to find it
+          searchInput.value = '';
+          filterMethod.value = '';
+          filterStatus.value = '';
+          filterDomain.value = '';
+          filterType.value = '';
+          activeQuickFilters.clear();
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
+          applyFilters();
+        }
+        const newIdx = filteredEntries.indexOf(entry);
+        if (newIdx >= 0) {
+          const rows = requestTbody.querySelectorAll('tr');
+          selectEntry(entry, rows[newIdx]);
+          rows[newIdx].scrollIntoView({ block: 'center' });
+        }
+      });
+    });
+  }
+
+  // Toggle insights panel collapse
+  btnToggleInsights.addEventListener('click', () => {
+    const body = insightsBody;
+    if (body.style.display === 'none') {
+      body.style.display = '';
+      btnToggleInsights.textContent = 'Collapse';
+    } else {
+      body.style.display = 'none';
+      btnToggleInsights.textContent = 'Expand';
+    }
+  });
+
+  // ── PII Masking & Copy to Copilot ─────────────────────
+  function maskPII(text) {
+    let ipCounter = 0, tokenCounter = 0, keyCounter = 0, emailCounter = 0;
+    const ipMap = {}, tokenMap = {}, keyMap = {}, emailMap = {};
+
+    // Mask emails
+    text = text.replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, (m) => {
+      if (!emailMap[m]) emailMap[m] = `[EMAIL-${++emailCounter}]`;
+      return emailMap[m];
+    });
+
+    // Mask IPv4
+    text = text.replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, (m) => {
+      if (m === '0.0.0.0' || m === '127.0.0.1') return m;
+      if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
+      return ipMap[m];
+    });
+
+    // Mask IPv6 (simplified)
+    text = text.replace(/(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}/g, (m) => {
+      if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
+      return ipMap[m];
+    });
+
+    // Mask Bearer tokens
+    text = text.replace(/Bearer\s+[A-Za-z0-9\-._~+\/]+=*/g, (m) => {
+      if (!tokenMap[m]) tokenMap[m] = `Bearer [TOKEN-${++tokenCounter}]`;
+      return tokenMap[m];
+    });
+
+    // Mask long hex/base64 strings (likely keys/tokens) - 32+ chars
+    text = text.replace(/[A-Za-z0-9+\/\-_]{32,}={0,3}/g, (m) => {
+      // Skip common non-sensitive patterns
+      if (/^[a-z\-]+$/i.test(m)) return m;
+      if (!keyMap[m]) keyMap[m] = `[KEY-${++keyCounter}]`;
+      return keyMap[m];
+    });
+
+    return text;
+  }
+
+  function buildCopilotPrompt() {
+    const total = entries.length;
+    const errors = entries.filter(e => e.status >= 400).length;
+    const domains = [...new Set(entries.map(e => e.domain))].filter(Boolean);
+
+    let prompt = `## Network Trace Analysis\n\n`;
+    prompt += `**Summary:** ${total} requests across ${domains.length} domain(s), ${errors} error(s).\n\n`;
+
+    if (currentInsights.length) {
+      prompt += `### Findings\n\n`;
+      currentInsights.forEach((ins, i) => {
+        prompt += `${i+1}. **[${ins.severity.toUpperCase()}] ${ins.title}**\n   ${ins.desc}\n`;
+        if (ins.refs.length) {
+          const refDetails = ins.refs.slice(0, 5).map(seq => {
+            const e = entries.find(en => en.seq === seq);
+            if (!e) return '';
+            return `   - #${seq}: ${e.method} ${e.status} ${maskPII(e.url)}`;
+          }).filter(Boolean).join('\n');
+          prompt += refDetails + '\n';
+        }
+        prompt += '\n';
+      });
+    } else {
+      prompt += `### Findings\n\nNo issues detected — trace appears healthy.\n\n`;
+    }
+
+    // Add error details
+    const errorEntries = entries.filter(e => e.status >= 400 || e.status === 0).slice(0, 15);
+    if (errorEntries.length) {
+      prompt += `### Error Details (top ${Math.min(errorEntries.length, 15)})\n\n`;
+      errorEntries.forEach(e => {
+        prompt += `- **#${e.seq}** ${e.method} ${e.status} ${maskPII(truncate(e.url, 120))}\n`;
+        prompt += `  Time: ${formatMs(e.time)}, Size: ${formatSize(e.size)}\n`;
+        // Include relevant response snippet if available
+        if (e.responseBody && e.responseBody.text) {
+          const snippet = maskPII(truncate(e.responseBody.text, 200));
+          prompt += `  Response: \`${snippet}\`\n`;
+        }
+      });
+      prompt += '\n';
+    }
+
+    prompt += `### Domains Contacted\n\n`;
+    domains.forEach(d => { prompt += `- ${maskPII(d)}\n`; });
+    prompt += `\n---\nPlease analyze these findings and suggest troubleshooting steps. When referencing masked values like [IP-1] or [TOKEN-1], explain what the user should check at those masked locations.\n`;
+
+    return maskPII(prompt);
+  }
+
+  btnCopyCopilot.addEventListener('click', () => {
+    const prompt = buildCopilotPrompt();
+    navigator.clipboard.writeText(prompt).then(() => {
+      const orig = btnCopyCopilot.innerHTML;
+      btnCopyCopilot.innerHTML = '✅ Copied!';
+      setTimeout(() => { btnCopyCopilot.innerHTML = orig; }, 2000);
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = prompt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const orig = btnCopyCopilot.innerHTML;
+      btnCopyCopilot.innerHTML = '✅ Copied!';
+      setTimeout(() => { btnCopyCopilot.innerHTML = orig; }, 2000);
+    });
+  });
+
+  // ── Flag / Bookmark ─────────────────────────────────────
+  function toggleFlag(seq) {
+    if (flaggedEntries.has(seq)) flaggedEntries.delete(seq);
+    else flaggedEntries.add(seq);
+    renderTable();
+  }
+
+  // ── Context Menu ───────────────────────────────────────
+  const ctxMenu = document.getElementById('ctx-menu');
+  let ctxEntry = null;
+
+  function showContextMenu(ev, entry) {
+    ctxEntry = entry;
+    const isFlagged = flaggedEntries.has(entry.seq);
+    ctxMenu.innerHTML = `
+      <div class="ctx-menu-item" data-action="flag">${isFlagged ? '🚩 Unflag' : '🚩 Flag'} request</div>
+      <div class="ctx-menu-sep"></div>
+      <div class="ctx-menu-item" data-action="copy-url">📋 Copy URL</div>
+      <div class="ctx-menu-item" data-action="copy-response">📋 Copy response body</div>
+    `;
+    let x = ev.clientX, y = ev.clientY;
+    ctxMenu.classList.add('visible');
+    const rect = ctxMenu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top = y + 'px';
+  }
+
+  function hideContextMenu() { ctxMenu.classList.remove('visible'); ctxEntry = null; }
+
+  document.addEventListener('click', hideContextMenu);
+  document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('.request-table tbody')) hideContextMenu();
+  });
+
+  ctxMenu.addEventListener('click', (ev) => {
+    const item = ev.target.closest('.ctx-menu-item');
+    if (!item || !ctxEntry) return;
+    const action = item.dataset.action;
+    if (action === 'flag') {
+      toggleFlag(ctxEntry.seq);
+    } else if (action === 'copy-url') {
+      navigator.clipboard.writeText(ctxEntry.url).catch(() => {});
+    } else if (action === 'copy-response') {
+      const text = (ctxEntry.responseBody && ctxEntry.responseBody.text) || '';
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    hideContextMenu();
+  });
+
+  // ── Helpers ─────────────────────────────────────────────
+  function getHeader(headers, name) {
+    const h = headers.find(x => x.name.toLowerCase() === name.toLowerCase());
+    return h ? h.value : '';
+  }
+
+  // ── Auth Token Tracking ────────────────────────────────
+  function detectAuthTokenChanges() {
+    let prevAuth = null;
+    let authEstablished = false;
+    let refreshes = 0;
+    const refreshSeqs = [];
+    const missingSeqs = [];
+
+    entries.forEach(e => {
+      const auth = getHeader(e.requestHeaders, 'authorization');
+      if (auth) {
+        if (!authEstablished) authEstablished = true;
+        if (prevAuth && auth !== prevAuth) {
+          refreshes++;
+          refreshSeqs.push(e.seq);
+        }
+        prevAuth = auth;
+      } else if (authEstablished && e.status >= 400) {
+        missingSeqs.push(e.seq);
+      }
+    });
+
+    if (refreshes > 3) {
+      addInsight('warning', `Auth token refreshed ${refreshes} times`,
+        'Frequent token refreshes may indicate short-lived tokens or a token refresh loop. Check token expiry settings.',
+        refreshSeqs.slice(0, 8));
+    }
+    if (missingSeqs.length) {
+      addInsight('warning', `${missingSeqs.length} failed request(s) missing auth`,
+        'Requests failed without an Authorization header after auth was previously established. Session or token may have expired.',
+        missingSeqs.slice(0, 8));
+    }
+  }
+
+  // ── Time Gap Detection ─────────────────────────────────
+  function detectTimeGaps() {
+    const sorted = [...entries].sort((a, b) => a.seq - b.seq);
+    let gapCount = 0;
+    let maxGap = 0;
+    const gapSeqs = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const prevEnd = sorted[i - 1].startMs + sorted[i - 1].time;
+      const gap = sorted[i].startMs - prevEnd;
+      if (gap >= GAP_THRESHOLD) {
+        gapCount++;
+        if (gap > maxGap) maxGap = gap;
+        gapSeqs.push(sorted[i].seq);
+      }
+    }
+    if (gapCount) {
+      addInsight('warning', `${gapCount} time gap(s) detected (≥${formatMs(GAP_THRESHOLD)})`,
+        `Longest gap: ${formatMs(maxGap)}. Gaps between requests may indicate client-side hangs, user idle time, or token refresh delays. Look for ⏱ markers in the table.`,
+        gapSeqs.slice(0, 8));
+    }
+  }
+
+  // ── Utility Functions ──────────────────────────────────
+  function esc(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+
+  function truncate(s, len) {
+    if (!s) return '';
+    return s.length <= len ? s : s.substring(0, len) + '…';
+  }
+
+  function formatMs(ms) {
+    if (ms < 0 || isNaN(ms)) return '—';
+    if (ms < 1) return '<1 ms';
+    if (ms < 1000) return Math.round(ms) + ' ms';
+    if (ms < 60000) return (ms / 1000).toFixed(2) + ' s';
+    return (ms / 60000).toFixed(1) + ' min';
+  }
+
+  function formatSize(bytes) {
+    if (!bytes || bytes <= 0) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+
+  function tryFormatJson(text) {
+    try {
+      const parsed = JSON.parse(text);
+      return JSON.stringify(parsed, null, 2);
+    } catch { return text; }
+  }
+
+  function kvTable(pairs) {
+    if (!pairs || !pairs.length) return '<p style="color:var(--text-muted);font-size:12px">None</p>';
+    return '<table class="kv-table">' +
+      pairs.map(([k, v]) => `<tr><td class="kv-key">${esc(k)}</td><td class="kv-val">${esc(v)}</td></tr>`).join('') +
+      '</table>';
+  }
+
+})();
+</script>
+</body>
+</html>
