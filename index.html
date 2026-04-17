@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pHARser</title>
+<title>pHARser - Network Trace Analyzer Tool</title>
 <style>
 /* ── Theme Variables ─────────────────────────────────────── */
 :root, [data-theme="dark"] {
@@ -134,27 +134,155 @@ header .logo {
 }
 .btn-sm:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
-/* ── Drop Zone ───────────────────────────────────────────── */
+/* ── Drop Zone / Landing Hero ────────────────────────────── */
 #drop-screen {
   display: flex; align-items: center; justify-content: center;
-  flex: 1; padding: 24px;
+  flex: 1; position: relative; overflow: hidden; cursor: pointer;
 }
 #drop-screen.hidden { display: none; }
-.drop-zone {
-  border: 2px dashed var(--border); border-radius: 16px;
-  padding: 80px 60px; text-align: center; max-width: 560px; width: 100%;
-  cursor: pointer; transition: all 0.2s;
-  background: var(--surface);
+
+/* Animated network background */
+.network-bg {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
 }
-.drop-zone:hover, .drop-zone.dragover {
-  border-color: var(--accent); background: var(--accent-dim);
+.network-bg .node {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent); opacity: 0.15;
+  animation: nodePulse 4s ease-in-out infinite;
 }
-.drop-zone .icon { font-size: 48px; margin-bottom: 16px; }
-.drop-zone h2 { font-size: 20px; color: var(--heading); margin-bottom: 8px; }
-.drop-zone p { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
-.drop-zone .formats { font-size: 12px; color: var(--text-muted); margin-top: 16px; }
-.drop-zone .formats code {
-  background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-size: 11px;
+.network-bg .node::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 200px; height: 1px; transform-origin: 0 0;
+  background: linear-gradient(90deg, rgba(76,175,80,0.12) 0%, transparent 100%);
+}
+@keyframes nodePulse {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.8); }
+}
+/* Stagger the nodes */
+.network-bg .node:nth-child(1) { top: 12%; left: 8%; animation-delay: 0s; }
+.network-bg .node:nth-child(1)::after { transform: rotate(25deg); }
+.network-bg .node:nth-child(2) { top: 28%; left: 72%; animation-delay: 0.7s; }
+.network-bg .node:nth-child(2)::after { transform: rotate(160deg); width: 160px; }
+.network-bg .node:nth-child(3) { top: 65%; left: 15%; animation-delay: 1.4s; }
+.network-bg .node:nth-child(3)::after { transform: rotate(-30deg); width: 240px; }
+.network-bg .node:nth-child(4) { top: 80%; left: 60%; animation-delay: 2.1s; }
+.network-bg .node:nth-child(4)::after { transform: rotate(200deg); width: 180px; }
+.network-bg .node:nth-child(5) { top: 45%; left: 85%; animation-delay: 2.8s; }
+.network-bg .node:nth-child(5)::after { transform: rotate(110deg); width: 220px; }
+.network-bg .node:nth-child(6) { top: 18%; left: 40%; animation-delay: 0.3s; }
+.network-bg .node:nth-child(6)::after { transform: rotate(75deg); width: 170px; }
+.network-bg .node:nth-child(7) { top: 55%; left: 45%; animation-delay: 1.8s; }
+.network-bg .node:nth-child(7)::after { transform: rotate(-65deg); width: 200px; }
+.network-bg .node:nth-child(8) { top: 35%; left: 25%; animation-delay: 3.2s; }
+.network-bg .node:nth-child(8)::after { transform: rotate(140deg); width: 150px; }
+.network-bg .node:nth-child(9) { top: 75%; left: 35%; animation-delay: 0.9s; }
+.network-bg .node:nth-child(9)::after { transform: rotate(-20deg); width: 190px; }
+.network-bg .node:nth-child(10) { top: 10%; left: 90%; animation-delay: 2.5s; }
+.network-bg .node:nth-child(10)::after { transform: rotate(230deg); width: 130px; }
+.network-bg .node:nth-child(11) { top: 90%; left: 85%; animation-delay: 1.1s; }
+.network-bg .node:nth-child(11)::after { transform: rotate(50deg); width: 160px; }
+.network-bg .node:nth-child(12) { top: 50%; left: 5%; animation-delay: 3.6s; }
+.network-bg .node:nth-child(12)::after { transform: rotate(-80deg); width: 210px; }
+
+/* Traveling packet animation */
+.network-bg .packet {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); opacity: 0;
+  box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+}
+.network-bg .packet:nth-child(13) {
+  animation: packetMove1 6s linear infinite;
+}
+.network-bg .packet:nth-child(14) {
+  animation: packetMove2 8s linear infinite 2s;
+}
+.network-bg .packet:nth-child(15) {
+  animation: packetMove3 7s linear infinite 4s;
+}
+@keyframes packetMove1 {
+  0% { top: 12%; left: 8%; opacity: 0; }
+  5% { opacity: 0.8; }
+  50% { top: 45%; left: 85%; opacity: 0.6; }
+  95% { opacity: 0.8; }
+  100% { top: 80%; left: 60%; opacity: 0; }
+}
+@keyframes packetMove2 {
+  0% { top: 28%; left: 72%; opacity: 0; }
+  5% { opacity: 0.7; }
+  50% { top: 55%; left: 45%; opacity: 0.5; }
+  95% { opacity: 0.7; }
+  100% { top: 65%; left: 15%; opacity: 0; }
+}
+@keyframes packetMove3 {
+  0% { top: 90%; left: 85%; opacity: 0; }
+  5% { opacity: 0.7; }
+  50% { top: 35%; left: 25%; opacity: 0.5; }
+  95% { opacity: 0.7; }
+  100% { top: 10%; left: 90%; opacity: 0; }
+}
+
+/* Hero content */
+.hero-content {
+  position: relative; z-index: 1; text-align: center;
+  max-width: 640px; padding: 40px;
+}
+.hero-title {
+  font-size: 56px; font-weight: 800; letter-spacing: -2px;
+  color: var(--heading); line-height: 1.1; margin-bottom: 8px;
+}
+.hero-title .accent { color: var(--accent); }
+.hero-subtitle {
+  font-size: 18px; color: var(--text-muted); font-weight: 400;
+  margin-bottom: 40px; line-height: 1.5;
+}
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--accent); color: #fff; border: none;
+  padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600;
+  cursor: pointer; transition: all 0.25s;
+  box-shadow: 0 4px 24px rgba(76,175,80,0.35), 0 0 60px rgba(76,175,80,0.1);
+  letter-spacing: 0.2px;
+}
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(76,175,80,0.5), 0 0 80px rgba(76,175,80,0.15);
+}
+.hero-cta:active { transform: translateY(0); }
+.hero-cta .cta-icon { font-size: 20px; }
+.hero-hint {
+  margin-top: 20px; font-size: 13px; color: var(--text-muted); opacity: 0.6;
+}
+.hero-hint kbd {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 4px; font-size: 11px;
+  font-family: inherit;
+}
+.hero-features {
+  display: flex; gap: 24px; justify-content: center; margin-top: 48px;
+  flex-wrap: wrap;
+}
+.hero-feature {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-muted);
+}
+.hero-feature .feat-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+
+/* Drag-over state: entire screen glows */
+#drop-screen.dragover {
+  background: rgba(76,175,80,0.03);
+}
+#drop-screen.dragover .hero-cta {
+  box-shadow: 0 8px 40px rgba(76,175,80,0.6), 0 0 100px rgba(76,175,80,0.2);
+  transform: translateY(-2px) scale(1.02);
+}
+#drop-screen.dragover .network-bg .node {
+  opacity: 0.4;
+  animation-duration: 1.5s;
 }
 #file-input { display: none; }
 
@@ -560,6 +688,159 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   .detail-pane { height: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 20; }
   .resize-handle-h { display: none; }
 }
+
+/* ── View Switcher ───────────────────────────────────────── */
+.view-switcher {
+  display: flex; gap: 6px; padding: 8px 16px;
+  background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.view-btn {
+  padding: 7px 20px; font-size: 12px; font-weight: 500; color: var(--text-muted);
+  cursor: pointer; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--surface2); transition: all 0.2s ease; user-select: none;
+  display: flex; align-items: center; gap: 7px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.view-btn:hover {
+  background: var(--surface2); border-color: var(--accent); color: var(--text);
+  box-shadow: 0 2px 8px rgba(76,175,80,0.15);
+}
+.view-btn.active {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+  box-shadow: 0 2px 10px rgba(76,175,80,0.3);
+}
+
+/* ── GUID Extractor ──────────────────────────────────────── */
+.guid-extractor { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.guid-extractor.hidden { display: none; }
+.guid-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
+}
+.guid-toolbar .search-box {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 10px; flex: 1; max-width: 400px;
+}
+.guid-toolbar .search-box input {
+  background: none; border: none; color: var(--text); font-size: 12px;
+  padding: 7px 0; width: 100%; outline: none;
+}
+.guid-toolbar .search-box input::placeholder { color: var(--text-muted); }
+.guid-stats {
+  font-size: 12px; color: var(--text-muted); margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.guid-stats .stat-pill {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.guid-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+
+/* Level 1: Family */
+.guid-family {
+  margin-bottom: 6px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); overflow: hidden;
+}
+.guid-family-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.1s; user-select: none;
+}
+.guid-family-header:hover { background: var(--surface2); }
+.guid-family-header .chevron {
+  font-size: 10px; color: var(--text-muted); transition: transform 0.2s;
+  width: 16px; text-align: center; flex-shrink: 0;
+}
+.guid-family.expanded > .guid-family-header .chevron { transform: rotate(90deg); }
+.guid-family-header .fam-icon { font-size: 16px; flex-shrink: 0; }
+.guid-family-header .fam-name {
+  font-size: 14px; font-weight: 700; color: var(--heading); flex: 1;
+}
+.guid-family-header .fam-badge {
+  font-size: 10px; padding: 2px 10px; border-radius: 10px; font-weight: 600;
+  background: var(--surface3); color: var(--text-muted); flex-shrink: 0;
+}
+.guid-family-body { display: none; border-top: 1px solid var(--border); }
+.guid-family.expanded > .guid-family-body { display: block; }
+
+/* Level 2: Variable */
+.guid-variable {
+  border-bottom: 1px solid var(--border);
+}
+.guid-variable:last-child { border-bottom: none; }
+.guid-var-header {
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 28px;
+  cursor: pointer; transition: background 0.1s; user-select: none;
+}
+.guid-var-header:hover { background: var(--surface2); }
+.guid-var-header .chevron {
+  font-size: 9px; color: var(--text-muted); transition: transform 0.2s;
+  width: 14px; text-align: center; flex-shrink: 0;
+}
+.guid-variable.expanded > .guid-var-header .chevron { transform: rotate(90deg); }
+.guid-var-header .var-name {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.guid-var-header .var-desc {
+  font-size: 10px; color: var(--text-muted); font-style: italic; flex-shrink: 0;
+}
+.guid-var-header .var-badge {
+  font-size: 10px; padding: 1px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0;
+}
+.guid-var-header .var-badge.single { background: var(--accent-dim); color: var(--accent); }
+.guid-var-header .var-badge.multi { background: var(--orange-dim); color: var(--orange); }
+.guid-var-body { display: none; padding: 6px 14px 10px 52px; }
+.guid-variable.expanded > .guid-var-body { display: block; }
+
+/* Level 3: GUID chips */
+.guid-chip-grid {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.guid-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
+  color: var(--cyan); background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 8px; cursor: pointer;
+  transition: all 0.15s; max-width: 100%;
+}
+.guid-chip:hover {
+  background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+}
+.guid-chip .chip-count {
+  font-size: 9px; font-weight: 700; color: var(--text-muted);
+  background: var(--surface3); padding: 0 5px; border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.guid-chip .chip-copy {
+  font-size: 10px; opacity: 0; transition: all 0.15s; margin-left: 2px;
+  cursor: pointer; padding: 1px 3px; border-radius: 3px;
+}
+.guid-chip:hover .chip-copy { opacity: 1; }
+.guid-chip .chip-copy:hover { background: var(--accent-dim); }
+
+/* Singleton: single GUID shown inline in variable header */
+.guid-var-header .singleton-guid {
+  font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
+  color: var(--cyan); cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  transition: background 0.1s; margin-left: auto; flex-shrink: 0;
+}
+.guid-var-header .singleton-guid:hover { background: var(--accent-dim); color: var(--accent); }
+
+.guid-copied-toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #fff; padding: 8px 20px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; z-index: 1200;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.guid-copied-toast.visible { opacity: 1; }
+.guid-empty {
+  text-align: center; padding: 60px 24px; color: var(--text-muted);
+}
+.guid-empty .icon { font-size: 36px; margin-bottom: 12px; }
+.guid-empty p { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -578,12 +859,28 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
 <!-- ── Drop Screen ───────────────────────────────────────── -->
 <div id="drop-screen">
-  <div class="drop-zone" id="drop-zone">
-    <div class="icon">📡</div>
-    <h2>Drop your HAR file here</h2>
-    <p>or click to browse</p>
-    <div class="formats">
-      Supports <code>.har</code> (HTTP Archive) files exported from browser DevTools, Fiddler, or similar tools.
+  <!-- Animated network background -->
+  <div class="network-bg">
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <!-- Traveling packets -->
+    <div class="packet"></div><div class="packet"></div><div class="packet"></div>
+  </div>
+
+  <!-- Hero content -->
+  <div class="hero-content" id="drop-zone">
+    <h2 class="hero-title">p<span class="accent">HAR</span>ser</h2>
+    <p class="hero-subtitle">Drop a network trace anywhere on this page<br>and get instant insights</p>
+    <button class="hero-cta" id="hero-cta-btn">
+      <span class="cta-icon">📂</span> Open HAR File
+    </button>
+    <p class="hero-hint">or drag &amp; drop · supports <kbd>.har</kbd> <kbd>.json</kbd></p>
+    <div class="hero-features">
+      <div class="hero-feature"><span class="feat-icon">⚠️</span> Auto-detect errors</div>
+      <div class="hero-feature"><span class="feat-icon">🔑</span> GUID extraction</div>
+      <div class="hero-feature"><span class="feat-icon">🤖</span> Copilot-ready</div>
     </div>
     <input type="file" id="file-input" accept=".har,.json">
   </div>
@@ -648,6 +945,12 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     <!-- Summary Bar -->
     <div class="summary-bar" id="summary-bar"></div>
 
+    <!-- View Switcher -->
+    <div class="view-switcher" id="view-tabs" style="display:none">
+      <button class="view-btn active" data-view="trace">📋 Trace</button>
+      <button class="view-btn" data-view="guids">🔑 GUID Extractor</button>
+    </div>
+
     <!-- Insights Panel -->
     <div class="insights-panel hidden" id="insights-panel">
       <div class="insights-header">
@@ -705,8 +1008,25 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         <div class="detail-body" id="detail-body"></div>
       </div>
     </div>
+
+    <!-- GUID Extractor View -->
+    <div class="guid-extractor hidden" id="guid-extractor">
+      <div class="guid-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="guid-search" placeholder="Search GUIDs, categories, or request #...">
+        </div>
+        <div class="guid-stats" id="guid-stats"></div>
+        <button class="btn-sm" id="btn-copy-all-guids" title="Copy all GUIDs to clipboard">📋 Copy All</button>
+        <button class="btn-sm" id="btn-expand-all-guids">Expand All</button>
+      </div>
+      <div class="guid-body" id="guid-body"></div>
+    </div>
   </div>
 </div>
+
+<!-- Toast for GUID copy -->
+<div class="guid-copied-toast" id="guid-copied-toast">Copied!</div>
 
 <!-- Tooltip -->
 <div class="tooltip" id="tooltip"></div>
@@ -757,6 +1077,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   const btnNewFile = document.getElementById('btn-new-file');
   const sidebar = document.getElementById('sidebar');
   const btnSidebar = document.getElementById('btn-sidebar');
+  const viewTabs = document.getElementById('view-tabs');
+  const guidExtractor = document.getElementById('guid-extractor');
+  const guidBody = document.getElementById('guid-body');
+  const guidStatsEl = document.getElementById('guid-stats');
+  const guidSearchInput = document.getElementById('guid-search');
+  const guidCopiedToast = document.getElementById('guid-copied-toast');
+  let currentGuidData = null;
+  let guidAllExpanded = false;
 
   // ── Theme ──────────────────────────────────────────────
   (function initTheme() {
@@ -789,14 +1117,16 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   })();
 
   // ── File Handling ──────────────────────────────────────
-  dropZone.addEventListener('click', () => fileInput.click());
+  const heroCtaBtn = document.getElementById('hero-cta-btn');
+  heroCtaBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', (e) => { if (e.target === dropZone || e.target.closest('.hero-content')) fileInput.click(); });
   fileInput.addEventListener('change', (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); });
 
-  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-  dropZone.addEventListener('drop', (e) => {
+  dropScreen.addEventListener('dragover', (e) => { e.preventDefault(); dropScreen.classList.add('dragover'); });
+  dropScreen.addEventListener('dragleave', (e) => { if (!dropScreen.contains(e.relatedTarget)) dropScreen.classList.remove('dragover'); });
+  dropScreen.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('dragover');
+    dropScreen.classList.remove('dragover');
     const f = e.dataTransfer.files[0];
     if (f) loadFile(f);
   });
@@ -829,6 +1159,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     searchInput.value = '';
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
     fileInput.value = '';
+    viewTabs.style.display = 'none';
+    guidExtractor.classList.add('hidden');
+    guidBody.innerHTML = '';
+    guidSearchInput.value = '';
+    currentGuidData = null;
+    // Reset view buttons to trace
+    viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
+    viewTabs.querySelector('[data-view="trace"]').classList.add('active');
   }
 
   async function loadFile(file) {
@@ -933,11 +1271,13 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     appScreen.style.display = '';
     btnNewFile.style.display = '';
     btnSidebar.style.display = '';
+    viewTabs.style.display = '';
 
     populateFilterOptions();
     renderSummary(fileName);
     applyFilters();
     runInsightsEngine();
+    extractAndRenderGuids();
   }
 
   // ── Filter Options ─────────────────────────────────────
@@ -1896,6 +2236,481 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       pairs.map(([k, v]) => `<tr><td class="kv-key">${esc(k)}</td><td class="kv-val">${esc(v)}</td></tr>`).join('') +
       '</table>';
   }
+
+  // ── View Tab Switching ───────────────────────────────────
+  const contentSplit = document.querySelector('.content-split');
+  const resizeHandle = document.getElementById('resize-handle');
+
+  viewTabs.addEventListener('click', (ev) => {
+    const tab = ev.target.closest('.view-btn');
+    if (!tab) return;
+    const view = tab.dataset.view;
+    viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    if (view === 'trace') {
+      insightsPanel.classList.remove('hidden');
+      contentSplit.style.display = '';
+      resizeHandle.style.display = '';
+      guidExtractor.classList.add('hidden');
+    } else if (view === 'guids') {
+      insightsPanel.classList.add('hidden');
+      contentSplit.style.display = 'none';
+      resizeHandle.style.display = 'none';
+      guidExtractor.classList.remove('hidden');
+    }
+  });
+
+  // ── GUID Extractor Engine ────────────────────────────────
+  const GUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
+  const KNOWN_GUID_LABELS = {
+    'x-ms-request-id': 'Per-request tracking ID',
+    'x-ms-correlation-request-id': 'Correlation ID across services',
+    'x-ms-client-request-id': 'Client-generated request ID',
+    'x-ms-client-session-id': 'Client session ID',
+    'x-ms-routing-request-id': 'Azure routing request ID',
+    'request-id': 'Request tracking ID',
+    'activityid': 'Activity ID for tracing',
+    'x-ms-ests-server-render-origin-request-id': 'Entra ID origin request ID',
+    'client-request-id': 'Client request ID',
+    'x-ms-activity-vector': 'Activity vector for tracing',
+    // URL path segments
+    'environments': 'Environment ID',
+    'flows': 'Flow / Cloud Flow ID',
+    'connections': 'Connection ID',
+    'connectors': 'Connector ID',
+    'bots': 'Bot / Copilot ID',
+    'workflows': 'Workflow ID',
+    'operations': 'Operation ID',
+    'runs': 'Run ID',
+    'triggers': 'Trigger ID',
+    'actions': 'Action ID',
+    'subscriptions': 'Azure Subscription ID',
+    'resourceGroups': 'Resource Group ID',
+    'tenants': 'Tenant ID',
+    'users': 'User ID',
+    'apps': 'App ID',
+    'sessions': 'Session ID',
+  };
+
+  function getKnownLabel(category) {
+    // Extract the key part from category like "Response Header: x-ms-request-id"
+    const parts = category.split(': ');
+    const key = parts.length > 1 ? parts.slice(1).join(': ').toLowerCase() : category.toLowerCase();
+    return KNOWN_GUID_LABELS[key] || '';
+  }
+
+  function addGuidEntry(map, category, guid, seq) {
+    const g = guid.toLowerCase();
+    if (!map.has(category)) map.set(category, new Map());
+    const catMap = map.get(category);
+    if (!catMap.has(g)) catMap.set(g, new Set());
+    catMap.get(g).add(seq);
+  }
+
+  function extractUrlGuids(url, seq, map) {
+    try {
+      const u = new URL(url);
+      // Path segments: find GUID and use preceding segment as context
+      const segments = u.pathname.split('/');
+      segments.forEach((seg, i) => {
+        GUID_REGEX.lastIndex = 0;
+        if (GUID_REGEX.test(seg)) {
+          const context = (i > 0 && !GUID_REGEX.test(segments[i-1])) ? segments[i-1] : 'path';
+          GUID_REGEX.lastIndex = 0;
+          addGuidEntry(map, `URL: ${context}`, seg, seq);
+        }
+      });
+      // Query parameters
+      u.searchParams.forEach((val, key) => {
+        GUID_REGEX.lastIndex = 0;
+        const matches = val.match(GUID_REGEX) || [];
+        matches.forEach(g => addGuidEntry(map, `URL Param: ${key}`, g, seq));
+      });
+    } catch {
+      const matches = url.match(GUID_REGEX) || [];
+      matches.forEach(g => addGuidEntry(map, 'URL', g, seq));
+    }
+  }
+
+  function extractJsonGuids(text, sourceLabel, seq, map) {
+    try {
+      const obj = JSON.parse(text);
+      walkJson(obj, sourceLabel, seq, map, 0);
+    } catch {
+      // Not JSON, fall back to regex
+      const matches = text.match(GUID_REGEX) || [];
+      matches.forEach(g => addGuidEntry(map, sourceLabel, g, seq));
+    }
+  }
+
+  function walkJson(obj, sourceLabel, seq, map, depth) {
+    if (depth > 8 || !obj) return;
+    if (typeof obj === 'string') {
+      GUID_REGEX.lastIndex = 0;
+      const matches = obj.match(GUID_REGEX);
+      if (matches) matches.forEach(g => addGuidEntry(map, sourceLabel, g, seq));
+      return;
+    }
+    if (Array.isArray(obj)) {
+      obj.forEach(item => walkJson(item, sourceLabel, seq, map, depth + 1));
+      return;
+    }
+    if (typeof obj === 'object') {
+      for (const [key, val] of Object.entries(obj)) {
+        if (typeof val === 'string') {
+          GUID_REGEX.lastIndex = 0;
+          const matches = val.match(GUID_REGEX);
+          if (matches) {
+            const label = `${sourceLabel}: ${key}`;
+            matches.forEach(g => addGuidEntry(map, label, g, seq));
+          }
+        } else {
+          walkJson(val, sourceLabel, seq, map, depth + 1);
+        }
+      }
+    }
+  }
+
+  function extractAllGuids() {
+    const map = new Map(); // category -> Map<guid, Set<seq>>
+
+    entries.forEach(e => {
+      // URLs
+      extractUrlGuids(e.url, e.seq, map);
+
+      // Request headers
+      e.requestHeaders.forEach(h => {
+        const matches = h.value.match(GUID_REGEX) || [];
+        matches.forEach(g => addGuidEntry(map, `Request Header: ${h.name}`, g, e.seq));
+      });
+
+      // Response headers
+      e.responseHeaders.forEach(h => {
+        const matches = h.value.match(GUID_REGEX) || [];
+        matches.forEach(g => addGuidEntry(map, `Response Header: ${h.name}`, g, e.seq));
+      });
+
+      // Request body
+      if (e.requestBody && e.requestBody.text) {
+        extractJsonGuids(e.requestBody.text, 'Request Body', e.seq, map);
+      }
+
+      // Response body
+      if (e.responseBody && e.responseBody.text) {
+        extractJsonGuids(e.responseBody.text, 'Response Body', e.seq, map);
+      }
+    });
+
+    return map;
+  }
+
+  function extractAndRenderGuids() {
+    currentGuidData = extractAllGuids();
+    renderGuidTree();
+  }
+
+  // Classify a category string into a family
+  function getFamily(cat) {
+    if (cat.startsWith('URL Param:')) return 'URL Parameters';
+    if (cat.startsWith('URL:')) return 'URL Path';
+    if (cat.startsWith('Request Header:')) return 'Request Headers';
+    if (cat.startsWith('Response Header:')) return 'Response Headers';
+    if (cat.startsWith('Request Body')) return 'Request Body';
+    if (cat.startsWith('Response Body')) return 'Response Body';
+    return 'Other';
+  }
+
+  function getFamilyIcon(fam) {
+    switch (fam) {
+      case 'URL Path': return '🌐';
+      case 'URL Parameters': return '❓';
+      case 'Request Headers': return '📤';
+      case 'Response Headers': return '📥';
+      case 'Request Body': return '📝';
+      case 'Response Body': return '📦';
+      default: return '🔑';
+    }
+  }
+
+  function getFamilySortOrder(fam) {
+    switch (fam) {
+      case 'URL Path': return 0;
+      case 'URL Parameters': return 1;
+      case 'Request Headers': return 2;
+      case 'Response Headers': return 3;
+      case 'Request Body': return 4;
+      case 'Response Body': return 5;
+      default: return 6;
+    }
+  }
+
+  // Extract the variable name from a category (the part after the prefix)
+  function getVarName(cat) {
+    const colonIdx = cat.indexOf(': ');
+    if (colonIdx !== -1) return cat.substring(colonIdx + 2);
+    return cat;
+  }
+
+  function renderGuidTree(filterText) {
+    if (!currentGuidData || currentGuidData.size === 0) {
+      guidBody.innerHTML = '<div class="guid-empty"><div class="icon">🔑</div><p>No GUIDs found in this trace</p></div>';
+      guidStatsEl.innerHTML = '';
+      return;
+    }
+
+    const q = (filterText || '').toLowerCase().trim();
+
+    // Group categories into families
+    // family -> [ { varName, label, valuesMap (filtered) } ]
+    const families = new Map();
+    let totalGuids = 0;
+    let totalOccurrences = 0;
+
+    currentGuidData.forEach((valuesMap, category) => {
+      let filteredValues;
+      if (q) {
+        filteredValues = new Map();
+        valuesMap.forEach((seqs, guid) => {
+          if (guid.includes(q) || category.toLowerCase().includes(q) ||
+              [...seqs].some(s => ('#' + s).includes(q))) {
+            filteredValues.set(guid, seqs);
+          }
+        });
+        if (filteredValues.size === 0) return;
+      } else {
+        filteredValues = valuesMap;
+      }
+
+      const family = getFamily(category);
+      const varName = getVarName(category);
+      const label = getKnownLabel(category);
+
+      if (!families.has(family)) families.set(family, []);
+      let varOccurrences = 0;
+      filteredValues.forEach(seqs => varOccurrences += seqs.size);
+      totalGuids += filteredValues.size;
+      totalOccurrences += varOccurrences;
+
+      families.get(family).push({ varName, label, values: filteredValues, occurrences: varOccurrences });
+    });
+
+    if (families.size === 0) {
+      guidBody.innerHTML = '<div class="guid-empty"><div class="icon">🔍</div><p>No GUIDs match your search</p></div>';
+      guidStatsEl.innerHTML = '';
+      return;
+    }
+
+    // Sort families
+    const sortedFamilies = [...families.entries()].sort((a, b) => getFamilySortOrder(a[0]) - getFamilySortOrder(b[0]));
+
+    let html = '';
+    let familyCount = 0;
+
+    sortedFamilies.forEach(([famName, variables]) => {
+      // Sort variables: by name
+      variables.sort((a, b) => a.varName.localeCompare(b.varName));
+      const famTotalUnique = variables.reduce((s, v) => s + v.values.size, 0);
+      const famTotalVars = variables.length;
+      familyCount++;
+
+      html += `<div class="guid-family" data-fam="${esc(famName)}">`;
+      html += `<div class="guid-family-header">`;
+      html += `<span class="chevron">▶</span>`;
+      html += `<span class="fam-icon">${getFamilyIcon(famName)}</span>`;
+      html += `<span class="fam-name">${esc(famName)}</span>`;
+      html += `<span class="fam-badge">${famTotalVars} var${famTotalVars !== 1 ? 's' : ''} · ${famTotalUnique} GUIDs</span>`;
+      html += `</div>`;
+
+      html += `<div class="guid-family-body">`;
+      variables.forEach(v => {
+        const uniqueCount = v.values.size;
+        const isSingleton = uniqueCount === 1;
+        const badgeCls = uniqueCount > 1 ? 'multi' : 'single';
+
+        html += `<div class="guid-variable${isSingleton ? '' : ''}" data-var="${esc(v.varName)}">`;
+        html += `<div class="guid-var-header">`;
+
+        if (isSingleton) {
+          // Singleton: show GUID inline, no expand
+          const [guid, seqs] = [...v.values.entries()][0];
+          const seqArr = [...seqs].sort((a, b) => a - b);
+          html += `<span class="chevron" style="visibility:hidden">▶</span>`;
+          html += `<span class="var-name">${esc(v.varName)}</span>`;
+          if (v.label) html += `<span class="var-desc">${esc(v.label)}</span>`;
+          html += `<span class="singleton-guid" data-guid="${guid}" title="Click to copy">${guid}</span>`;
+          html += `<span class="var-badge single">${seqArr.length}×</span>`;
+        } else {
+          html += `<span class="chevron">▶</span>`;
+          html += `<span class="var-name">${esc(v.varName)}</span>`;
+          if (v.label) html += `<span class="var-desc">${esc(v.label)}</span>`;
+          html += `<span class="var-badge ${badgeCls}">${uniqueCount} unique · ${v.occurrences}×</span>`;
+        }
+
+        html += `</div>`; // var-header
+
+        if (!isSingleton) {
+          html += `<div class="guid-var-body">`;
+          html += `<div class="guid-chip-grid">`;
+          const sortedValues = [...v.values.entries()].sort((a, b) => b[1].size - a[1].size);
+          sortedValues.forEach(([guid, seqs]) => {
+            const count = seqs.size;
+            html += `<span class="guid-chip" data-guid="${guid}" data-seqs="${[...seqs].sort((a,b)=>a-b).join(',')}" title="${count}× — Click to go to request">`;
+            html += `${guid}`;
+            if (count > 1) html += `<span class="chip-count">${count}×</span>`;
+            html += `<span class="chip-copy" title="Copy to clipboard">📋</span>`;
+            html += `</span>`;
+          });
+          html += `</div>`; // chip-grid
+          html += `</div>`; // var-body
+        }
+
+        html += `</div>`; // variable
+      });
+      html += `</div>`; // family-body
+      html += `</div>`; // family
+    });
+
+    guidBody.innerHTML = html;
+    guidStatsEl.innerHTML = `
+      <span class="stat-pill">${totalGuids} unique GUIDs</span>
+      <span class="stat-pill">${totalOccurrences} occurrences</span>
+      <span class="stat-pill">${familyCount} families</span>
+    `;
+
+    wireGuidInteractions();
+  }
+
+  function wireGuidInteractions() {
+    // Family expand/collapse
+    guidBody.querySelectorAll('.guid-family-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+
+    // Variable expand/collapse (only multi-value ones)
+    guidBody.querySelectorAll('.guid-var-header').forEach(header => {
+      const variable = header.parentElement;
+      const isSingleton = !variable.querySelector('.guid-var-body');
+      if (!isSingleton) {
+        header.addEventListener('click', (ev) => {
+          // Don't toggle if clicking the singleton guid
+          if (ev.target.closest('.singleton-guid')) return;
+          variable.classList.toggle('expanded');
+        });
+      }
+    });
+
+    // Copy singleton GUIDs
+    guidBody.querySelectorAll('.singleton-guid').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const guid = el.dataset.guid;
+        navigator.clipboard.writeText(guid).then(() => showGuidToast('Copied: ' + guid)).catch(() => {});
+      });
+    });
+
+    // Click chip: navigate to first request
+    guidBody.querySelectorAll('.guid-chip').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        // If clicking the copy button, copy instead
+        if (ev.target.closest('.chip-copy')) {
+          const guid = el.dataset.guid;
+          navigator.clipboard.writeText(guid).then(() => showGuidToast('Copied: ' + guid)).catch(() => {});
+          return;
+        }
+        const seqs = el.dataset.seqs;
+        if (seqs) {
+          const firstSeq = parseInt(seqs.split(',')[0]);
+          navigateToRequest(firstSeq);
+        }
+      });
+    });
+  }
+
+  function navigateToRequest(seq) {
+    // Switch to trace view
+    viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
+    viewTabs.querySelector('[data-view="trace"]').classList.add('active');
+    insightsPanel.classList.remove('hidden');
+    contentSplit.style.display = '';
+    resizeHandle.style.display = '';
+    guidExtractor.classList.add('hidden');
+
+    const entry = entries.find(e => e.seq === seq);
+    if (!entry) return;
+    const idx = filteredEntries.indexOf(entry);
+    if (idx === -1) {
+      // Clear filters to find it
+      searchInput.value = '';
+      filterMethod.value = '';
+      filterStatus.value = '';
+      filterDomain.value = '';
+      filterType.value = '';
+      activeQuickFilters.clear();
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
+      applyFilters();
+    }
+    const newIdx = filteredEntries.indexOf(entry);
+    if (newIdx >= 0) {
+      // Find the actual row (skip gap rows)
+      const rows = requestTbody.querySelectorAll('tr:not(.time-gap-row)');
+      if (rows[newIdx]) {
+        selectEntry(entry, rows[newIdx]);
+        rows[newIdx].scrollIntoView({ block: 'center' });
+      }
+    }
+  }
+
+  function showGuidToast(msg) {
+    guidCopiedToast.textContent = msg;
+    guidCopiedToast.classList.add('visible');
+    setTimeout(() => guidCopiedToast.classList.remove('visible'), 1800);
+  }
+
+  // GUID search
+  guidSearchInput.addEventListener('input', () => {
+    renderGuidTree(guidSearchInput.value);
+  });
+
+  // Copy all GUIDs
+  document.getElementById('btn-copy-all-guids').addEventListener('click', () => {
+    if (!currentGuidData) return;
+    let text = '';
+    const sortOrder = (cat) => {
+      if (cat.startsWith('URL:')) return 0;
+      if (cat.startsWith('URL Param:')) return 1;
+      if (cat.startsWith('Request Header:')) return 2;
+      if (cat.startsWith('Response Header:')) return 3;
+      if (cat.startsWith('Request Body')) return 4;
+      if (cat.startsWith('Response Body')) return 5;
+      return 6;
+    };
+    const sorted = [...currentGuidData.entries()].sort((a, b) => sortOrder(a[0]) - sortOrder(b[0]));
+    sorted.forEach(([cat, valMap]) => {
+      const label = getKnownLabel(cat);
+      text += `\n## ${cat}${label ? ' (' + label + ')' : ''}\n`;
+      [...valMap.entries()].sort((a, b) => b[1].size - a[1].size).forEach(([guid, seqs]) => {
+        text += `  ${guid}  (${seqs.size}× in requests: ${[...seqs].sort((a,b)=>a-b).join(', ')})\n`;
+      });
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      showGuidToast('All GUIDs copied to clipboard');
+    }).catch(() => {});
+  });
+
+  // Expand/collapse all
+  document.getElementById('btn-expand-all-guids').addEventListener('click', () => {
+    guidAllExpanded = !guidAllExpanded;
+    const btn = document.getElementById('btn-expand-all-guids');
+    btn.textContent = guidAllExpanded ? 'Collapse All' : 'Expand All';
+    guidBody.querySelectorAll('.guid-family, .guid-variable').forEach(el => {
+      if (guidAllExpanded) el.classList.add('expanded');
+      else el.classList.remove('expanded');
+    });
+  });
 
 })();
 </script>
