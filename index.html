@@ -120,6 +120,17 @@ header .logo {
 .header-stats .stat-val { font-weight: 600; color: var(--text); }
 .header-stats .stat-err { color: var(--red); }
 .header-stats .stat-slow { color: var(--orange); }
+.header-filename {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 3px 10px; max-width: 300px; overflow: hidden;
+}
+.header-filename .fn-icon { font-size: 11px; flex-shrink: 0; }
+.header-filename .fn-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
+  color: var(--cyan);
+}
 .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .btn-icon {
   background: none; border: 1px solid var(--border); color: var(--text-muted);
@@ -363,17 +374,6 @@ header .logo {
 .filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .filter-chip.err { border-color: var(--red); color: var(--red); background: var(--red-dim); }
 .filter-chip.slow { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
-
-/* Summary stats in sidebar */
-.sidebar-stats { display: flex; flex-direction: column; gap: 6px; }
-.sidebar-stat {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 4px 0; font-size: 12px;
-}
-.sidebar-stat .label { color: var(--text-muted); }
-.sidebar-stat .value { font-weight: 600; color: var(--heading); font-family: monospace; font-size: 12px; }
-.sidebar-stat .value.err { color: var(--red); }
-.sidebar-stat .value.warn { color: var(--orange); }
 
 /* ── Main Content Area ───────────────────────────────────── */
 .main-area {
@@ -718,6 +718,320 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   box-shadow: 0 2px 10px rgba(76,175,80,0.3);
 }
 
+/* ── Error Message Extractor ──────────────────────────────── */
+.error-extractor { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.error-extractor.hidden { display: none; }
+.error-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
+}
+.error-toolbar .search-box {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 10px; flex: 1; max-width: 400px;
+}
+.error-toolbar .search-box input {
+  background: none; border: none; color: var(--text); font-size: 12px;
+  padding: 7px 0; width: 100%; outline: none;
+}
+.error-toolbar .search-box input::placeholder { color: var(--text-muted); }
+.error-stats {
+  font-size: 12px; color: var(--text-muted); margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.error-stats .stat-pill {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.error-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.error-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 200px; color: var(--text-muted);
+}
+.error-empty .icon { font-size: 40px; margin-bottom: 12px; }
+
+/* Error entry card */
+.error-entry {
+  margin-bottom: 6px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); overflow: hidden;
+}
+.error-entry-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.1s; user-select: none;
+}
+.error-entry-header:hover { background: var(--surface2); }
+.error-entry-header .chevron {
+  font-size: 10px; color: var(--text-muted); transition: transform 0.2s;
+  width: 16px; text-align: center; flex-shrink: 0;
+}
+.error-entry.expanded > .error-entry-header .chevron { transform: rotate(90deg); }
+.error-entry-header .err-seq {
+  font-size: 11px; color: var(--cyan); font-weight: 600;
+  font-variant-numeric: tabular-nums; min-width: 30px;
+}
+.error-entry-header .err-status {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; flex-shrink: 0;
+}
+.error-entry-header .err-status.s4xx { background: var(--orange-dim); color: var(--orange); }
+.error-entry-header .err-status.s5xx { background: var(--red-dim); color: var(--red); }
+.error-entry-header .err-status.s0xx { background: var(--red-dim); color: var(--red); }
+.error-entry-header .err-method {
+  font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 40px;
+}
+.error-entry-header .err-url {
+  font-size: 12px; color: var(--text); flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+.error-entry-header .err-time {
+  font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+}
+.error-entry-body {
+  display: none; border-top: 1px solid var(--border); padding: 10px 14px 10px 42px;
+}
+.error-entry.expanded > .error-entry-body { display: block; }
+.error-msg-block {
+  margin-bottom: 8px;
+}
+.error-msg-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); margin-bottom: 3px;
+}
+.error-msg-text {
+  font-size: 12px; color: var(--red); line-height: 1.5;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  background: var(--surface2); padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word;
+  max-height: 200px; overflow-y: auto;
+}
+.error-msg-text.warn { color: var(--orange); }
+.error-nav-btn {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 6px;
+  font-size: 11px; color: var(--cyan); cursor: pointer; background: none;
+  border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px;
+  transition: all 0.15s;
+}
+.error-nav-btn:hover { background: var(--surface2); border-color: var(--cyan); }
+
+/* ── Correlation Flow ─────────────────────────────────────── */
+.corr-flow { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.corr-flow.hidden { display: none; }
+.corr-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
+}
+.corr-toolbar .search-box {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 10px; flex: 1; max-width: 400px;
+}
+.corr-toolbar .search-box input {
+  background: none; border: none; color: var(--text); font-size: 12px;
+  padding: 7px 0; width: 100%; outline: none;
+}
+.corr-toolbar .search-box input::placeholder { color: var(--text-muted); }
+.corr-stats {
+  font-size: 12px; color: var(--text-muted); margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.corr-stats .stat-pill {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.corr-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.corr-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 200px; color: var(--text-muted);
+}
+.corr-empty .icon { font-size: 40px; margin-bottom: 12px; }
+.corr-empty p { font-size: 14px; }
+
+/* Chain card */
+.corr-chain {
+  margin-bottom: 8px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); overflow: hidden;
+}
+.corr-chain-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.1s; user-select: none;
+}
+.corr-chain-header:hover { background: var(--surface2); }
+.corr-chain-header .chevron {
+  font-size: 10px; color: var(--text-muted); transition: transform 0.2s;
+  width: 16px; text-align: center; flex-shrink: 0;
+}
+.corr-chain.expanded > .corr-chain-header .chevron { transform: rotate(90deg); }
+.corr-chain-header .chain-icon { font-size: 14px; flex-shrink: 0; }
+.corr-chain-header .chain-name {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.corr-chain-header .chain-id {
+  font-size: 11px; color: var(--cyan);
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer;
+}
+.corr-chain-header .chain-id:hover { text-decoration: underline; }
+.corr-chain-header .chain-badge {
+  font-size: 10px; padding: 2px 10px; border-radius: 10px; font-weight: 600;
+  background: var(--surface3); color: var(--text-muted); flex-shrink: 0;
+}
+.corr-chain-header .chain-badge.has-errors { background: var(--red-dim); color: var(--red); }
+.corr-chain-body { display: none; border-top: 1px solid var(--border); padding: 10px 14px 10px 42px; }
+.corr-chain.expanded > .corr-chain-body { display: block; }
+
+/* Chain step */
+.corr-step {
+  display: flex; align-items: center; gap: 10px; padding: 6px 8px;
+  border-radius: 6px; cursor: pointer; transition: background 0.1s;
+}
+.corr-step:hover { background: var(--surface2); }
+.corr-step .step-seq {
+  font-size: 11px; color: var(--cyan); font-weight: 600;
+  font-variant-numeric: tabular-nums; min-width: 30px;
+}
+.corr-step .step-status {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; flex-shrink: 0;
+}
+.corr-step .step-status.s2xx { background: var(--accent-dim); color: var(--accent); }
+.corr-step .step-status.s3xx { background: var(--blue-dim, rgba(66,165,245,0.15)); color: var(--blue, #42a5f5); }
+.corr-step .step-status.s4xx { background: var(--orange-dim); color: var(--orange); }
+.corr-step .step-status.s5xx { background: var(--red-dim); color: var(--red); }
+.corr-step .step-status.s0xx { background: var(--red-dim); color: var(--red); }
+.corr-step .step-method {
+  font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 40px;
+}
+.corr-step .step-domain {
+  font-size: 12px; color: var(--text); flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.corr-step .step-time {
+  font-size: 11px; color: var(--text-muted); flex-shrink: 0; min-width: 60px; text-align: right;
+}
+.corr-step .step-flag {
+  font-size: 12px; flex-shrink: 0;
+}
+.corr-gap {
+  display: flex; align-items: center; gap: 6px; padding: 2px 8px 2px 38px;
+  font-size: 10px; color: var(--text-muted);
+}
+.corr-gap .gap-line {
+  width: 1px; height: 14px; background: var(--border); margin-left: 14px;
+}
+.corr-gap .gap-label {
+  font-size: 10px; color: var(--text-muted); font-style: italic;
+}
+.corr-gap .gap-label.slow { color: var(--orange); }
+.corr-copy-chain {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+  font-size: 11px; color: var(--accent); cursor: pointer; background: none;
+  border: 1px solid var(--accent-dim); border-radius: 6px; padding: 3px 10px;
+  transition: all 0.15s;
+}
+.corr-copy-chain:hover { background: var(--accent-dim); }
+
+/* ── Token Decoder ────────────────────────────────────── */
+.token-decoder { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.token-decoder.hidden { display: none; }
+.token-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
+}
+.token-toolbar .search-box {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0 10px; flex: 1; max-width: 400px;
+}
+.token-toolbar .search-box input {
+  background: none; border: none; color: var(--text); font-size: 12px;
+  padding: 7px 0; width: 100%; outline: none;
+}
+.token-toolbar .search-box input::placeholder { color: var(--text-muted); }
+.token-stats {
+  font-size: 12px; color: var(--text-muted); margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.token-stats .stat-pill {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+}
+.token-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.token-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 200px; color: var(--text-muted);
+}
+.token-empty .icon { font-size: 40px; margin-bottom: 12px; }
+.token-empty p { font-size: 14px; }
+
+/* Token card */
+.token-card {
+  margin-bottom: 8px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); overflow: hidden;
+}
+.token-card-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.1s; user-select: none;
+}
+.token-card-header:hover { background: var(--surface2); }
+.token-card-header .chevron {
+  font-size: 10px; color: var(--text-muted); transition: transform 0.2s;
+  width: 16px; text-align: center; flex-shrink: 0;
+}
+.token-card.expanded > .token-card-header .chevron { transform: rotate(90deg); }
+.token-card-header .tok-icon { font-size: 14px; flex-shrink: 0; }
+.token-card-header .tok-source {
+  font-size: 12px; font-weight: 600; color: var(--text); flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.token-card-header .tok-sub {
+  font-size: 11px; color: var(--cyan);
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.token-card-header .tok-badge {
+  font-size: 10px; padding: 2px 10px; border-radius: 10px; font-weight: 600; flex-shrink: 0;
+}
+.token-card-header .tok-badge.valid { background: var(--accent-dim); color: var(--accent); }
+.token-card-header .tok-badge.expired { background: var(--red-dim); color: var(--red); }
+.token-card-header .tok-badge.not-yet { background: var(--orange-dim); color: var(--orange); }
+.token-card-header .tok-badge.unknown { background: var(--surface3); color: var(--text-muted); }
+.token-card-body { display: none; border-top: 1px solid var(--border); }
+.token-card.expanded > .token-card-body { display: block; }
+
+/* Token sections */
+.tok-section {
+  padding: 8px 14px 8px 42px; border-bottom: 1px solid var(--border);
+}
+.tok-section:last-child { border-bottom: none; }
+.tok-section-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.tok-claims {
+  display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 12px;
+}
+.tok-claim-key {
+  color: var(--accent); font-weight: 600;
+  font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
+  white-space: nowrap;
+}
+.tok-claim-val {
+  color: var(--text); word-break: break-all;
+  font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
+}
+.tok-claim-val.expired { color: var(--red); font-weight: 600; }
+.tok-claim-val.valid { color: var(--accent); }
+.tok-claim-val.warn { color: var(--orange); }
+.tok-nav-btn {
+  display: inline-flex; align-items: center; gap: 4px; margin: 6px 14px 8px 42px;
+  font-size: 11px; color: var(--cyan); cursor: pointer; background: none;
+  border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px;
+  transition: all 0.15s;
+}
+.tok-nav-btn:hover { background: var(--surface2); border-color: var(--cyan); }
+
 /* ── GUID Extractor ──────────────────────────────────────── */
 .guid-extractor { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 .guid-extractor.hidden { display: none; }
@@ -857,7 +1171,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 <header>
   <span class="logo">🔬</span>
   <h1>pHARser</h1>
-  <div class="header-stats" id="header-stats"></div>
+  <div class="header-filename" id="header-filename" style="display:none">
+    <span class="fn-icon">📄</span>
+    <span class="fn-text" id="header-filename-text"></span>
+  </div>
   <div class="header-right">
     <button class="btn-sm" id="btn-new-file" style="display:none" title="Load another file">📂 New File</button>
     <button class="btn-icon" id="btn-sidebar" style="display:none" title="Toggle sidebar (Ctrl+B)">☰</button>
@@ -943,12 +1260,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
           <span class="filter-chip" data-filter="flagged" title="Show flagged requests">🚩 Flagged</span>
         </div>
       </div>
-
-      <!-- Stats -->
-      <div class="sidebar-section">
-        <h3>Trace Stats</h3>
-        <div class="sidebar-stats" id="sidebar-stats"></div>
-      </div>
     </div>
   </div>
 
@@ -960,7 +1271,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     <!-- View Switcher -->
     <div class="view-switcher" id="view-tabs" style="display:none">
       <button class="view-btn active" data-view="trace">📋 Trace</button>
+      <button class="view-btn" data-view="errors">⚠️ Error Messages</button>
       <button class="view-btn" data-view="guids">🔑 GUID Extractor</button>
+      <button class="view-btn" data-view="tokens">🎟️ Token Decoder</button>
+      <button class="view-btn" data-view="corr">🔗 Correlation Flow</button>
     </div>
 
     <!-- Insights Panel -->
@@ -1023,6 +1337,20 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       </div>
     </div>
 
+    <!-- Error Message Extractor View -->
+    <div class="error-extractor hidden" id="error-extractor">
+      <div class="error-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="error-search" placeholder="Search error messages, status codes, or request #...">
+        </div>
+        <div class="error-stats" id="error-stats"></div>
+        <button class="btn-sm" id="btn-copy-all-errors" title="Copy all error messages to clipboard">📋 Copy All</button>
+        <button class="btn-sm" id="btn-expand-all-errors">Expand All</button>
+      </div>
+      <div class="error-body" id="error-body"></div>
+    </div>
+
     <!-- GUID Extractor View -->
     <div class="guid-extractor hidden" id="guid-extractor">
       <div class="guid-toolbar">
@@ -1035,6 +1363,34 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         <button class="btn-sm" id="btn-expand-all-guids">Expand All</button>
       </div>
       <div class="guid-body" id="guid-body"></div>
+    </div>
+
+    <!-- Token Decoder View -->
+    <div class="token-decoder hidden" id="token-decoder">
+      <div class="token-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="token-search" placeholder="Search claims, audiences, issuers, or request #...">
+        </div>
+        <div class="token-stats" id="token-stats"></div>
+        <button class="btn-sm" id="btn-copy-all-tokens" title="Copy all decoded tokens to clipboard">📋 Copy All</button>
+        <button class="btn-sm" id="btn-expand-all-tokens">Expand All</button>
+      </div>
+      <div class="token-body" id="token-body"></div>
+    </div>
+
+    <!-- Correlation Flow View -->
+    <div class="corr-flow hidden" id="corr-flow">
+      <div class="corr-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="corr-search" placeholder="Search correlation IDs, domains, or request #...">
+        </div>
+        <div class="corr-stats" id="corr-stats"></div>
+        <button class="btn-sm" id="btn-copy-all-chains" title="Copy all chains to clipboard">📋 Copy All</button>
+        <button class="btn-sm" id="btn-expand-all-chains">Expand All</button>
+      </div>
+      <div class="corr-body" id="corr-body"></div>
     </div>
   </div>
 </div>
@@ -1084,21 +1440,40 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   const detailBody = document.getElementById('detail-body');
   const detailTabs = document.getElementById('detail-tabs');
   const summaryBar = document.getElementById('summary-bar');
-  const headerStats = document.getElementById('header-stats');
-  const sidebarStats = document.getElementById('sidebar-stats');
+
   const noResults = document.getElementById('no-results');
   const tooltip = document.getElementById('tooltip');
   const btnNewFile = document.getElementById('btn-new-file');
   const sidebar = document.getElementById('sidebar');
   const btnSidebar = document.getElementById('btn-sidebar');
   const viewTabs = document.getElementById('view-tabs');
+  const headerFilename = document.getElementById('header-filename');
+  const headerFilenameText = document.getElementById('header-filename-text');
   const guidExtractor = document.getElementById('guid-extractor');
   const guidBody = document.getElementById('guid-body');
   const guidStatsEl = document.getElementById('guid-stats');
   const guidSearchInput = document.getElementById('guid-search');
   const guidCopiedToast = document.getElementById('guid-copied-toast');
   let currentGuidData = null;
+  const errorExtractor = document.getElementById('error-extractor');
+  const errorBody = document.getElementById('error-body');
+  const errorStatsEl = document.getElementById('error-stats');
+  const errorSearchInput = document.getElementById('error-search');
+  let currentErrorData = null;
+  let errorAllExpanded = false;
   let guidAllExpanded = false;
+  const corrFlow = document.getElementById('corr-flow');
+  const corrBody = document.getElementById('corr-body');
+  const corrStatsEl = document.getElementById('corr-stats');
+  const corrSearchInput = document.getElementById('corr-search');
+  let currentCorrData = null;
+  let corrAllExpanded = false;
+  const tokenDecoder = document.getElementById('token-decoder');
+  const tokenBody = document.getElementById('token-body');
+  const tokenStatsEl = document.getElementById('token-stats');
+  const tokenSearchInput = document.getElementById('token-search');
+  let currentTokenData = null;
+  let tokenAllExpanded = false;
 
   // ── Theme ──────────────────────────────────────────────
   (function initTheme() {
@@ -1163,8 +1538,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     appScreen.style.display = 'none';
     btnNewFile.style.display = 'none';
     btnSidebar.style.display = 'none';
-    headerStats.innerHTML = '';
-    sidebarStats.innerHTML = '';
     requestTbody.innerHTML = '';
     detailPane.classList.add('hidden');
     insightsPanel.classList.add('hidden');
@@ -1174,10 +1547,24 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
     fileInput.value = '';
     viewTabs.style.display = 'none';
+    headerFilename.style.display = 'none';
+    headerFilenameText.textContent = '';
+    errorExtractor.classList.add('hidden');
+    errorBody.innerHTML = '';
+    errorSearchInput.value = '';
+    currentErrorData = null;
     guidExtractor.classList.add('hidden');
     guidBody.innerHTML = '';
     guidSearchInput.value = '';
     currentGuidData = null;
+    corrFlow.classList.add('hidden');
+    corrBody.innerHTML = '';
+    corrSearchInput.value = '';
+    currentCorrData = null;
+    tokenDecoder.classList.add('hidden');
+    tokenBody.innerHTML = '';
+    tokenSearchInput.value = '';
+    currentTokenData = null;
     // Reset view buttons to trace
     viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
     viewTabs.querySelector('[data-view="trace"]').classList.add('active');
@@ -1286,12 +1673,26 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     btnNewFile.style.display = '';
     btnSidebar.style.display = '';
     viewTabs.style.display = '';
+    headerFilenameText.textContent = fileName;
+    headerFilename.style.display = '';
+
+    // Ensure trace view is visible (may have been hidden by tab switch)
+    insightsPanel.classList.remove('hidden');
+    document.querySelector('.content-split').style.display = '';
+    document.getElementById('resize-handle').style.display = '';
+    errorExtractor.classList.add('hidden');
+    corrFlow.classList.add('hidden');
+    guidExtractor.classList.add('hidden');
+    tokenDecoder.classList.add('hidden');
 
     populateFilterOptions();
     renderSummary(fileName);
     applyFilters();
     runInsightsEngine();
     extractAndRenderGuids();
+    extractAndRenderErrors();
+    extractAndRenderCorrelations();
+    extractAndRenderTokens();
   }
 
   // ── Filter Options ─────────────────────────────────────
@@ -1329,22 +1730,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <div class="summary-card"><span class="card-label">Avg Latency</span><span class="card-value">${formatMs(avgTime)}</span><span class="card-sub">P95: ${formatMs(p95)}</span></div>
     `;
 
-    headerStats.innerHTML = `
-      <span class="stat"><span class="stat-val">${total}</span> requests</span>
-      ${errors ? `<span class="stat"><span class="stat-val stat-err">${errors}</span> errors</span>` : ''}
-      ${slow ? `<span class="stat"><span class="stat-val stat-slow">${slow}</span> slow</span>` : ''}
-    `;
 
-    sidebarStats.innerHTML = `
-      <div class="sidebar-stat"><span class="label">Total Requests</span><span class="value">${total}</span></div>
-      <div class="sidebar-stat"><span class="label">Errors (4xx/5xx)</span><span class="value ${errors ? 'err' : ''}">${errors}</span></div>
-      <div class="sidebar-stat"><span class="label">Slow (&gt;1s)</span><span class="value ${slow ? 'warn' : ''}">${slow}</span></div>
-      <div class="sidebar-stat"><span class="label">Domains</span><span class="value">${domains.length}</span></div>
-      <div class="sidebar-stat"><span class="label">Total Size</span><span class="value">${formatSize(totalSize)}</span></div>
-      <div class="sidebar-stat"><span class="label">Total Time</span><span class="value">${formatMs(totalTime)}</span></div>
-      <div class="sidebar-stat"><span class="label">Avg Latency</span><span class="value">${formatMs(avgTime)}</span></div>
-      <div class="sidebar-stat"><span class="label">P95 Latency</span><span class="value">${formatMs(p95)}</span></div>
-    `;
   }
 
   function percentile(arr, p) {
@@ -2380,17 +2766,848 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     const view = tab.dataset.view;
     viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
+    // Hide all views
+    insightsPanel.classList.add('hidden');
+    contentSplit.style.display = 'none';
+    resizeHandle.style.display = 'none';
+    errorExtractor.classList.add('hidden');
+    corrFlow.classList.add('hidden');
+    guidExtractor.classList.add('hidden');
+    tokenDecoder.classList.add('hidden');
+    // Show selected
     if (view === 'trace') {
       insightsPanel.classList.remove('hidden');
       contentSplit.style.display = '';
       resizeHandle.style.display = '';
-      guidExtractor.classList.add('hidden');
+    } else if (view === 'errors') {
+      errorExtractor.classList.remove('hidden');
+    } else if (view === 'corr') {
+      corrFlow.classList.remove('hidden');
     } else if (view === 'guids') {
-      insightsPanel.classList.add('hidden');
-      contentSplit.style.display = 'none';
-      resizeHandle.style.display = 'none';
       guidExtractor.classList.remove('hidden');
+    } else if (view === 'tokens') {
+      tokenDecoder.classList.remove('hidden');
     }
+  });
+
+  // ── Error Message Extractor Engine ──────────────────────
+  function extractErrorMessages() {
+    const results = [];
+
+    entries.forEach(e => {
+      if (e.status < 400 && e.status !== 0) return;
+
+      const messages = [];
+
+      // Status text
+      if (e.statusText) {
+        messages.push({ label: 'Status', text: `${e.status} ${e.statusText}` });
+      } else if (e.status >= 400) {
+        messages.push({ label: 'Status', text: `${e.status}` });
+      } else if (e.status === 0) {
+        messages.push({ label: 'Status', text: 'Connection failed (status 0)' });
+      }
+
+      // Response headers with error info
+      const errorHeaders = ['x-ms-error-code', 'x-error-code', 'www-authenticate', 'x-ms-diagnostics', 'x-ms-ests-server-render-origin-error'];
+      e.responseHeaders.forEach(h => {
+        if (errorHeaders.includes(h.name.toLowerCase()) || h.name.toLowerCase().includes('error')) {
+          messages.push({ label: `Header: ${h.name}`, text: h.value });
+        }
+      });
+
+      // Response body error messages
+      if (e.responseBody && e.responseBody.text) {
+        const bodyText = e.responseBody.text;
+
+        // Try JSON parsing
+        try {
+          const json = JSON.parse(bodyText);
+          const extracted = extractJsonErrors(json);
+          extracted.forEach(msg => messages.push(msg));
+        } catch {
+          // Not JSON — try to extract meaningful text
+          if (bodyText.length <= 2000) {
+            // Check for HTML error pages
+            const titleMatch = bodyText.match(/<title[^>]*>([^<]+)<\/title>/i);
+            if (titleMatch) {
+              messages.push({ label: 'Page Title', text: titleMatch[1].trim() });
+            }
+            // Check for common text error patterns
+            const plainText = bodyText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (plainText.length > 0 && plainText.length <= 500) {
+              messages.push({ label: 'Response Body', text: plainText });
+            }
+          } else {
+            messages.push({ label: 'Response Body', text: `(${formatSize(bodyText.length)} response — too large to display)` });
+          }
+        }
+      }
+
+      if (messages.length > 0) {
+        results.push({
+          seq: e.seq,
+          status: e.status,
+          statusClass: e.status >= 500 ? 's5xx' : e.status >= 400 ? 's4xx' : 's0xx',
+          method: e.method,
+          url: e.url,
+          domain: e.domain,
+          time: e.time,
+          messages: messages
+        });
+      }
+    });
+
+    return results;
+  }
+
+  function extractJsonErrors(obj, depth) {
+    if (!depth) depth = 0;
+    if (depth > 6 || !obj) return [];
+    const results = [];
+    const errorKeys = ['error', 'message', 'error_description', 'errorMessage', 'errorCode',
+      'error_code', 'detail', 'details', 'reason', 'statusMessage', 'exceptionMessage',
+      'innererror', 'innerError', 'fault', 'faultstring', 'failureReason', 'title',
+      'errorInfo', 'code', 'statusCode'];
+
+    if (typeof obj === 'string') return [];
+    if (Array.isArray(obj)) {
+      obj.forEach(item => results.push(...extractJsonErrors(item, depth + 1)));
+      return results;
+    }
+    if (typeof obj !== 'object') return [];
+
+    for (const [key, val] of Object.entries(obj)) {
+      const keyLower = key.toLowerCase();
+      if (errorKeys.some(ek => ek.toLowerCase() === keyLower)) {
+        if (typeof val === 'string' && val.length > 0) {
+          results.push({ label: key, text: val });
+        } else if (typeof val === 'number') {
+          results.push({ label: key, text: String(val) });
+        } else if (typeof val === 'object' && val !== null) {
+          // Nested error object — try to get its message
+          const nested = extractJsonErrors(val, depth + 1);
+          if (nested.length > 0) {
+            results.push(...nested);
+          } else {
+            // Stringify compact
+            try {
+              const s = JSON.stringify(val, null, 2);
+              if (s.length <= 500) {
+                results.push({ label: key, text: s });
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+
+    // If nothing found at this level, recurse into all object values
+    if (results.length === 0) {
+      for (const val of Object.values(obj)) {
+        if (typeof val === 'object' && val !== null) {
+          results.push(...extractJsonErrors(val, depth + 1));
+        }
+      }
+    }
+
+    return results;
+  }
+
+  function extractAndRenderErrors() {
+    currentErrorData = extractErrorMessages();
+    renderErrorList();
+  }
+
+  function renderErrorList(filterText) {
+    if (!currentErrorData || currentErrorData.length === 0) {
+      errorBody.innerHTML = '<div class="error-empty"><div class="icon">✅</div><p>No error responses found in this trace</p></div>';
+      errorStatsEl.innerHTML = '';
+      return;
+    }
+
+    const q = (filterText || '').toLowerCase().trim();
+    let filtered = currentErrorData;
+
+    if (q) {
+      filtered = currentErrorData.filter(err => {
+        return String(err.status).includes(q) ||
+          err.method.toLowerCase().includes(q) ||
+          err.url.toLowerCase().includes(q) ||
+          err.domain.toLowerCase().includes(q) ||
+          ('#' + err.seq).includes(q) ||
+          err.messages.some(m => m.text.toLowerCase().includes(q) || m.label.toLowerCase().includes(q));
+      });
+    }
+
+    if (filtered.length === 0) {
+      errorBody.innerHTML = '<div class="error-empty"><div class="icon">🔍</div><p>No errors match your search</p></div>';
+      errorStatsEl.innerHTML = '';
+      return;
+    }
+
+    const count4xx = filtered.filter(e => e.status >= 400 && e.status < 500).length;
+    const count5xx = filtered.filter(e => e.status >= 500).length;
+    const count0 = filtered.filter(e => e.status === 0).length;
+
+    let html = '';
+    filtered.forEach(err => {
+      const urlShort = truncate(err.url, 100);
+      html += `<div class="error-entry" data-seq="${err.seq}">`;
+      html += `<div class="error-entry-header">`;
+      html += `<span class="chevron">▶</span>`;
+      html += `<span class="err-seq">#${err.seq}</span>`;
+      html += `<span class="err-status ${err.statusClass}">${err.status || '0'}</span>`;
+      html += `<span class="err-method">${err.method}</span>`;
+      html += `<span class="err-url" title="${esc(err.url)}">${esc(urlShort)}</span>`;
+      html += `<span class="err-time">${formatMs(err.time)}</span>`;
+      html += `</div>`;
+
+      html += `<div class="error-entry-body">`;
+      err.messages.forEach(msg => {
+        html += `<div class="error-msg-block">`;
+        html += `<div class="error-msg-label">${esc(msg.label)}</div>`;
+        html += `<div class="error-msg-text">${esc(msg.text)}</div>`;
+        html += `</div>`;
+      });
+      html += `<button class="error-nav-btn" data-seq="${err.seq}">📋 Go to request #${err.seq}</button>`;
+      html += `</div>`;
+      html += `</div>`;
+    });
+
+    errorBody.innerHTML = html;
+
+    let statsHtml = `<span class="stat-pill">${filtered.length} errors</span>`;
+    if (count4xx) statsHtml += `<span class="stat-pill">${count4xx} client (4xx)</span>`;
+    if (count5xx) statsHtml += `<span class="stat-pill">${count5xx} server (5xx)</span>`;
+    if (count0) statsHtml += `<span class="stat-pill">${count0} failed</span>`;
+    errorStatsEl.innerHTML = statsHtml;
+
+    wireErrorInteractions();
+  }
+
+  function wireErrorInteractions() {
+    // Expand/collapse
+    errorBody.querySelectorAll('.error-entry-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+
+    // Navigate to request
+    errorBody.querySelectorAll('.error-nav-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const seq = parseInt(btn.dataset.seq);
+        navigateToRequest(seq);
+      });
+    });
+  }
+
+  // Error search
+  errorSearchInput.addEventListener('input', () => {
+    renderErrorList(errorSearchInput.value);
+  });
+
+  // Copy all errors
+  document.getElementById('btn-copy-all-errors').addEventListener('click', () => {
+    if (!currentErrorData || currentErrorData.length === 0) return;
+    let text = '# Error Messages Extracted from HAR Trace\n\n';
+    currentErrorData.forEach(err => {
+      text += `## #${err.seq} — ${err.method} ${err.status} ${err.url}\n`;
+      err.messages.forEach(msg => {
+        text += `**${msg.label}:** ${msg.text}\n`;
+      });
+      text += '\n';
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      showGuidToast('All error messages copied to clipboard');
+    }).catch(() => {});
+  });
+
+  // Expand/collapse all errors
+  document.getElementById('btn-expand-all-errors').addEventListener('click', () => {
+    errorAllExpanded = !errorAllExpanded;
+    const btn = document.getElementById('btn-expand-all-errors');
+    btn.textContent = errorAllExpanded ? 'Collapse All' : 'Expand All';
+    errorBody.querySelectorAll('.error-entry').forEach(el => {
+      if (errorAllExpanded) el.classList.add('expanded');
+      else el.classList.remove('expanded');
+    });
+  });
+
+  // ── Token Decoder Engine ─────────────────────────────────
+  const JWT_REGEX = /eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
+
+  function base64UrlDecode(str) {
+    try {
+      // Pad base64url to base64
+      let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      return JSON.parse(atob(b64));
+    } catch { return null; }
+  }
+
+  function decodeJwt(token) {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const header = base64UrlDecode(parts[0]);
+    const payload = base64UrlDecode(parts[1]);
+    if (!header || !payload) return null;
+    return { header, payload, raw: token };
+  }
+
+  function getTokenExpStatus(payload, requestTimeMs) {
+    const exp = payload.exp;
+    const nbf = payload.nbf;
+    if (!exp) return { status: 'unknown', label: 'No expiry' };
+    const expMs = exp * 1000;
+    const now = requestTimeMs || Date.now();
+    if (nbf && now < nbf * 1000) return { status: 'not-yet', label: 'Not yet valid' };
+    if (now > expMs) {
+      const ago = now - expMs;
+      return { status: 'expired', label: `Expired ${formatMs(ago)} before request` };
+    }
+    const remaining = expMs - now;
+    return { status: 'valid', label: `Valid (${formatMs(remaining)} remaining)` };
+  }
+
+  function extractAllTokens() {
+    const results = [];
+    const seen = new Set(); // Avoid duplicate tokens
+
+    entries.forEach(e => {
+      const requestTime = e.startMs + (entries.length ? new Date(entries[0].raw.startedDateTime).getTime() : Date.now());
+
+      // Authorization headers
+      e.requestHeaders.forEach(h => {
+        if (h.name.toLowerCase() === 'authorization') {
+          const match = h.value.match(/Bearer\s+(eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/);
+          if (match && !seen.has(match[1])) {
+            seen.add(match[1]);
+            const decoded = decodeJwt(match[1]);
+            if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Authorization header`, location: 'header', decoded, requestTime });
+          }
+        }
+      });
+
+      // Response headers with tokens
+      e.responseHeaders.forEach(h => {
+        JWT_REGEX.lastIndex = 0;
+        const matches = h.value.match(JWT_REGEX) || [];
+        matches.forEach(tok => {
+          if (seen.has(tok)) return;
+          seen.add(tok);
+          const decoded = decodeJwt(tok);
+          if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Response header: ${h.name}`, location: 'header', decoded, requestTime });
+        });
+      });
+
+      // Cookies (request)
+      e.requestHeaders.forEach(h => {
+        if (h.name.toLowerCase() === 'cookie') {
+          JWT_REGEX.lastIndex = 0;
+          const matches = h.value.match(JWT_REGEX) || [];
+          matches.forEach(tok => {
+            if (seen.has(tok)) return;
+            seen.add(tok);
+            const decoded = decodeJwt(tok);
+            if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Cookie`, location: 'cookie', decoded, requestTime });
+          });
+        }
+      });
+
+      // Set-Cookie (response)
+      e.responseHeaders.forEach(h => {
+        if (h.name.toLowerCase() === 'set-cookie') {
+          JWT_REGEX.lastIndex = 0;
+          const matches = h.value.match(JWT_REGEX) || [];
+          matches.forEach(tok => {
+            if (seen.has(tok)) return;
+            seen.add(tok);
+            const decoded = decodeJwt(tok);
+            if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Set-Cookie`, location: 'cookie', decoded, requestTime });
+          });
+        }
+      });
+
+      // Request body
+      if (e.requestBody && e.requestBody.text) {
+        JWT_REGEX.lastIndex = 0;
+        const matches = e.requestBody.text.match(JWT_REGEX) || [];
+        matches.forEach(tok => {
+          if (seen.has(tok)) return;
+          seen.add(tok);
+          const decoded = decodeJwt(tok);
+          if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Request body`, location: 'body', decoded, requestTime });
+        });
+      }
+
+      // Response body
+      if (e.responseBody && e.responseBody.text) {
+        JWT_REGEX.lastIndex = 0;
+        const matches = e.responseBody.text.match(JWT_REGEX) || [];
+        matches.forEach(tok => {
+          if (seen.has(tok)) return;
+          seen.add(tok);
+          const decoded = decodeJwt(tok);
+          if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — Response body`, location: 'body', decoded, requestTime });
+        });
+      }
+
+      // URL query params
+      JWT_REGEX.lastIndex = 0;
+      const urlMatches = e.url.match(JWT_REGEX) || [];
+      urlMatches.forEach(tok => {
+        if (seen.has(tok)) return;
+        seen.add(tok);
+        const decoded = decodeJwt(tok);
+        if (decoded) results.push({ seq: e.seq, source: `Request #${e.seq} — URL`, location: 'url', decoded, requestTime });
+      });
+    });
+
+    return results;
+  }
+
+  function extractAndRenderTokens() {
+    currentTokenData = extractAllTokens();
+    renderTokenList();
+  }
+
+  const IMPORTANT_CLAIMS = new Set([
+    'aud', 'iss', 'sub', 'exp', 'nbf', 'iat', 'tid', 'oid', 'appid', 'azp',
+    'scp', 'roles', 'name', 'preferred_username', 'upn', 'email', 'acr', 'amr',
+    'ver', 'app_displayname', 'idtyp', 'tenant_region_scope'
+  ]);
+
+  function formatClaimValue(key, val, requestTime) {
+    if ((key === 'exp' || key === 'nbf' || key === 'iat') && typeof val === 'number') {
+      const d = new Date(val * 1000);
+      const timeStr = d.toISOString().replace('T', ' ').replace(/\.\d+Z/, ' UTC');
+      if (key === 'exp') {
+        const expStatus = getTokenExpStatus({ exp: val }, requestTime);
+        const cls = expStatus.status === 'expired' ? 'expired' : expStatus.status === 'valid' ? 'valid' : 'warn';
+        return `<span class="${cls}">${timeStr} (${expStatus.label})</span>`;
+      }
+      return timeStr;
+    }
+    if (Array.isArray(val)) return esc(val.join(', '));
+    if (typeof val === 'object' && val !== null) return esc(JSON.stringify(val));
+    return esc(String(val));
+  }
+
+  function renderTokenList(filterText) {
+    if (!currentTokenData || currentTokenData.length === 0) {
+      tokenBody.innerHTML = '<div class="token-empty"><div class="icon">🎟️</div><p>No JWT tokens found in this trace</p></div>';
+      tokenStatsEl.innerHTML = '';
+      return;
+    }
+
+    const q = (filterText || '').toLowerCase().trim();
+    let filtered = currentTokenData;
+
+    if (q) {
+      filtered = currentTokenData.filter(tok => {
+        const p = tok.decoded.payload;
+        return tok.source.toLowerCase().includes(q) ||
+          ('#' + tok.seq).includes(q) ||
+          (p.aud && String(p.aud).toLowerCase().includes(q)) ||
+          (p.iss && p.iss.toLowerCase().includes(q)) ||
+          (p.sub && p.sub.toLowerCase().includes(q)) ||
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.upn && p.upn.toLowerCase().includes(q)) ||
+          (p.preferred_username && p.preferred_username.toLowerCase().includes(q)) ||
+          (p.appid && p.appid.toLowerCase().includes(q)) ||
+          (p.scp && p.scp.toLowerCase().includes(q)) ||
+          (p.tid && p.tid.toLowerCase().includes(q)) ||
+          Object.values(p).some(v => String(v).toLowerCase().includes(q));
+      });
+    }
+
+    if (filtered.length === 0) {
+      tokenBody.innerHTML = '<div class="token-empty"><div class="icon">🔍</div><p>No tokens match your search</p></div>';
+      tokenStatsEl.innerHTML = '';
+      return;
+    }
+
+    const expired = filtered.filter(t => getTokenExpStatus(t.decoded.payload, t.requestTime).status === 'expired').length;
+    const valid = filtered.filter(t => getTokenExpStatus(t.decoded.payload, t.requestTime).status === 'valid').length;
+
+    let html = '';
+    filtered.forEach((tok, idx) => {
+      const p = tok.decoded.payload;
+      const h = tok.decoded.header;
+      const expStatus = getTokenExpStatus(p, tok.requestTime);
+      const audience = p.aud || 'unknown';
+      const subject = p.preferred_username || p.upn || p.name || p.sub || p.oid || '';
+
+      html += `<div class="token-card">`;
+      html += `<div class="token-card-header">`;
+      html += `<span class="chevron">▶</span>`;
+      html += `<span class="tok-icon">🎟️</span>`;
+      html += `<span class="tok-source">${esc(tok.source)}</span>`;
+      if (subject) html += `<span class="tok-sub" title="${esc(subject)}">${esc(truncate(subject, 30))}</span>`;
+      html += `<span class="tok-badge ${expStatus.status}">${esc(expStatus.label)}</span>`;
+      html += `</div>`;
+
+      html += `<div class="token-card-body">`;
+
+      // Header section
+      html += `<div class="tok-section">`;
+      html += `<div class="tok-section-label">JWT Header</div>`;
+      html += `<div class="tok-claims">`;
+      for (const [k, v] of Object.entries(h)) {
+        html += `<span class="tok-claim-key">${esc(k)}</span>`;
+        html += `<span class="tok-claim-val">${esc(String(v))}</span>`;
+      }
+      html += `</div></div>`;
+
+      // Important claims
+      const importantEntries = Object.entries(p).filter(([k]) => IMPORTANT_CLAIMS.has(k));
+      if (importantEntries.length) {
+        html += `<div class="tok-section">`;
+        html += `<div class="tok-section-label">Key Claims</div>`;
+        html += `<div class="tok-claims">`;
+        importantEntries.forEach(([k, v]) => {
+          html += `<span class="tok-claim-key">${esc(k)}</span>`;
+          html += `<span class="tok-claim-val">${formatClaimValue(k, v, tok.requestTime)}</span>`;
+        });
+        html += `</div></div>`;
+      }
+
+      // All other claims
+      const otherEntries = Object.entries(p).filter(([k]) => !IMPORTANT_CLAIMS.has(k));
+      if (otherEntries.length) {
+        html += `<div class="tok-section">`;
+        html += `<div class="tok-section-label">Other Claims (${otherEntries.length})</div>`;
+        html += `<div class="tok-claims">`;
+        otherEntries.forEach(([k, v]) => {
+          html += `<span class="tok-claim-key">${esc(k)}</span>`;
+          html += `<span class="tok-claim-val">${formatClaimValue(k, v, tok.requestTime)}</span>`;
+        });
+        html += `</div></div>`;
+      }
+
+      html += `</div>`; // card-body
+      html += `<button class="tok-nav-btn" data-seq="${tok.seq}">📋 Go to request #${tok.seq}</button>`;
+      html += `</div>`; // card
+    });
+
+    tokenBody.innerHTML = html;
+
+    let statsHtml = `<span class="stat-pill">${filtered.length} tokens</span>`;
+    if (valid) statsHtml += `<span class="stat-pill">${valid} valid</span>`;
+    if (expired) statsHtml += `<span class="stat-pill">${expired} expired</span>`;
+    tokenStatsEl.innerHTML = statsHtml;
+
+    wireTokenInteractions();
+  }
+
+  function wireTokenInteractions() {
+    // Expand/collapse
+    tokenBody.querySelectorAll('.token-card-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+
+    // Navigate to request
+    tokenBody.querySelectorAll('.tok-nav-btn').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const seq = parseInt(btn.dataset.seq);
+        navigateToRequest(seq);
+      });
+    });
+  }
+
+  // Token search
+  tokenSearchInput.addEventListener('input', () => {
+    renderTokenList(tokenSearchInput.value);
+  });
+
+  // Copy all tokens
+  document.getElementById('btn-copy-all-tokens').addEventListener('click', () => {
+    if (!currentTokenData || currentTokenData.length === 0) return;
+    let text = '# Decoded JWT Tokens from HAR Trace\n\n';
+    currentTokenData.forEach((tok, i) => {
+      const p = tok.decoded.payload;
+      const expStatus = getTokenExpStatus(p, tok.requestTime);
+      text += `## Token ${i + 1} — ${tok.source}\n`;
+      text += `**Status:** ${expStatus.label}\n`;
+      text += `**Header:** ${JSON.stringify(tok.decoded.header)}\n`;
+      text += `**Claims:**\n`;
+      for (const [k, v] of Object.entries(p)) {
+        let display = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        if ((k === 'exp' || k === 'nbf' || k === 'iat') && typeof v === 'number') {
+          display = new Date(v * 1000).toISOString() + ` (${display})`;
+        }
+        text += `  ${k}: ${display}\n`;
+      }
+      text += '\n';
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      showGuidToast('All tokens copied to clipboard');
+    }).catch(() => {});
+  });
+
+  // Expand/collapse all tokens
+  document.getElementById('btn-expand-all-tokens').addEventListener('click', () => {
+    tokenAllExpanded = !tokenAllExpanded;
+    const btn = document.getElementById('btn-expand-all-tokens');
+    btn.textContent = tokenAllExpanded ? 'Collapse All' : 'Expand All';
+    tokenBody.querySelectorAll('.token-card').forEach(el => {
+      if (tokenAllExpanded) el.classList.add('expanded');
+      else el.classList.remove('expanded');
+    });
+  });
+
+  // ── Correlation Flow Engine ─────────────────────────────
+  const CORRELATION_HEADERS = new Set([
+    'x-ms-correlation-request-id', 'x-ms-client-request-id', 'x-ms-request-id',
+    'x-ms-routing-request-id', 'request-id', 'client-request-id', 'activityid',
+    'x-ms-client-session-id', 'x-ms-ests-server-render-origin-request-id',
+    'x-ms-activity-vector'
+  ]);
+
+  function extractCorrelationChains() {
+    const chains = new Map(); // correlationId -> { header, entries: Set<seq> }
+    const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
+    entries.forEach(e => {
+      const allHeaders = [...e.requestHeaders, ...e.responseHeaders];
+      allHeaders.forEach(h => {
+        const name = h.name.toLowerCase();
+        if (!CORRELATION_HEADERS.has(name)) return;
+        // Extract GUIDs from the header value
+        const match = h.value.match(GUID_RE);
+        if (!match) return;
+        const id = match[0].toLowerCase();
+        const key = name + ':' + id;
+        if (!chains.has(key)) {
+          chains.set(key, { header: h.name, id: id, seqs: new Set() });
+        }
+        chains.get(key).seqs.add(e.seq);
+      });
+    });
+
+    // Convert to sorted array, filter out single-request chains (less useful)
+    const results = [];
+    chains.forEach(chain => {
+      if (chain.seqs.size < 2) return; // Only show chains with 2+ requests
+      const seqArr = [...chain.seqs].sort((a, b) => a - b);
+      const chainEntries = seqArr.map(seq => entries.find(en => en.seq === seq)).filter(Boolean);
+      chainEntries.sort((a, b) => a.startMs - b.startMs);
+      const hasErrors = chainEntries.some(en => en.status >= 400 || en.status === 0);
+      const totalTime = chainEntries.length >= 2
+        ? (chainEntries[chainEntries.length - 1].startMs + chainEntries[chainEntries.length - 1].time) - chainEntries[0].startMs
+        : chainEntries[0].time;
+      results.push({
+        header: chain.header,
+        id: chain.id,
+        entries: chainEntries,
+        hasErrors: hasErrors,
+        totalTime: totalTime
+      });
+    });
+
+    // Sort: chains with errors first, then by number of entries desc
+    results.sort((a, b) => {
+      if (a.hasErrors !== b.hasErrors) return a.hasErrors ? -1 : 1;
+      return b.entries.length - a.entries.length;
+    });
+
+    return results;
+  }
+
+  function extractAndRenderCorrelations() {
+    currentCorrData = extractCorrelationChains();
+    renderCorrFlow();
+  }
+
+  function getStepStatusClass(status) {
+    if (status >= 500) return 's5xx';
+    if (status >= 400) return 's4xx';
+    if (status >= 300) return 's3xx';
+    if (status >= 200) return 's2xx';
+    return 's0xx';
+  }
+
+  function renderCorrFlow(filterText) {
+    if (!currentCorrData || currentCorrData.length === 0) {
+      corrBody.innerHTML = '<div class="corr-empty"><div class="icon">🔗</div><p>No correlation chains found (need 2+ requests sharing a correlation header)</p></div>';
+      corrStatsEl.innerHTML = '';
+      return;
+    }
+
+    const q = (filterText || '').toLowerCase().trim();
+    let filtered = currentCorrData;
+
+    if (q) {
+      filtered = currentCorrData.filter(chain => {
+        return chain.id.includes(q) ||
+          chain.header.toLowerCase().includes(q) ||
+          chain.entries.some(en =>
+            ('#' + en.seq).includes(q) ||
+            en.domain.toLowerCase().includes(q) ||
+            en.url.toLowerCase().includes(q)
+          );
+      });
+    }
+
+    if (filtered.length === 0) {
+      corrBody.innerHTML = '<div class="corr-empty"><div class="icon">🔍</div><p>No chains match your search</p></div>';
+      corrStatsEl.innerHTML = '';
+      return;
+    }
+
+    const totalRequests = filtered.reduce((s, c) => s + c.entries.length, 0);
+    const chainsWithErrors = filtered.filter(c => c.hasErrors).length;
+
+    let html = '';
+    filtered.forEach(chain => {
+      const badgeCls = chain.hasErrors ? 'has-errors' : '';
+      html += `<div class="corr-chain">`;
+      html += `<div class="corr-chain-header">`;
+      html += `<span class="chevron">▶</span>`;
+      html += `<span class="chain-icon">🔗</span>`;
+      html += `<span class="chain-name">${esc(chain.header)}</span>`;
+      html += `<span class="chain-id" data-id="${esc(chain.id)}" title="Click to copy">${chain.id}</span>`;
+      html += `<span class="chain-badge ${badgeCls}">${chain.entries.length} requests${chain.hasErrors ? ' · has errors' : ''} · ${formatMs(chain.totalTime)}</span>`;
+      html += `</div>`;
+
+      html += `<div class="corr-chain-body">`;
+      chain.entries.forEach((en, i) => {
+        // Gap between steps
+        if (i > 0) {
+          const prev = chain.entries[i - 1];
+          const gap = en.startMs - (prev.startMs + prev.time);
+          if (gap > 0) {
+            const slowCls = gap >= 1000 ? 'slow' : '';
+            html += `<div class="corr-gap"><span class="gap-line"></span><span class="gap-label ${slowCls}">↓ ${formatMs(gap)} gap</span></div>`;
+          } else {
+            html += `<div class="corr-gap"><span class="gap-line"></span><span class="gap-label">↓</span></div>`;
+          }
+        }
+
+        const statusCls = getStepStatusClass(en.status);
+        const hasError = en.status >= 400 || en.status === 0;
+        html += `<div class="corr-step" data-seq="${en.seq}" title="${esc(en.url)}">`;
+        html += `<span class="step-seq">#${en.seq}</span>`;
+        html += `<span class="step-status ${statusCls}">${en.status || '0'}</span>`;
+        html += `<span class="step-method">${en.method}</span>`;
+        html += `<span class="step-domain">${esc(en.domain)}${esc(truncate(en.path, 60))}</span>`;
+        html += `<span class="step-time">${formatMs(en.time)}</span>`;
+        if (hasError) html += `<span class="step-flag">⚠️</span>`;
+        html += `</div>`;
+      });
+
+      html += `<button class="corr-copy-chain" data-chain-header="${esc(chain.header)}" data-chain-id="${esc(chain.id)}">📋 Copy chain</button>`;
+      html += `</div>`; // chain-body
+      html += `</div>`; // chain
+    });
+
+    corrBody.innerHTML = html;
+
+    let statsHtml = `<span class="stat-pill">${filtered.length} chains</span>`;
+    statsHtml += `<span class="stat-pill">${totalRequests} requests</span>`;
+    if (chainsWithErrors) statsHtml += `<span class="stat-pill">${chainsWithErrors} with errors</span>`;
+    corrStatsEl.innerHTML = statsHtml;
+
+    wireCorrInteractions();
+  }
+
+  function wireCorrInteractions() {
+    // Expand/collapse chains
+    corrBody.querySelectorAll('.corr-chain-header').forEach(header => {
+      header.addEventListener('click', (ev) => {
+        if (ev.target.closest('.chain-id')) return; // Don't toggle on ID click
+        header.parentElement.classList.toggle('expanded');
+      });
+    });
+
+    // Copy chain ID
+    corrBody.querySelectorAll('.chain-id').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        navigator.clipboard.writeText(el.dataset.id).then(() => {
+          showGuidToast('Copied: ' + el.dataset.id);
+        }).catch(() => {});
+      });
+    });
+
+    // Click step to navigate
+    corrBody.querySelectorAll('.corr-step').forEach(step => {
+      step.addEventListener('click', () => {
+        const seq = parseInt(step.dataset.seq);
+        navigateToRequest(seq);
+      });
+    });
+
+    // Copy chain
+    corrBody.querySelectorAll('.corr-copy-chain').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const header = btn.dataset.chainHeader;
+        const id = btn.dataset.chainId;
+        const chain = currentCorrData.find(c => c.header === header && c.id === id);
+        if (!chain) return;
+        let text = `Correlation Chain: ${header}\nID: ${id}\n${'─'.repeat(50)}\n`;
+        chain.entries.forEach((en, i) => {
+          if (i > 0) {
+            const prev = chain.entries[i - 1];
+            const gap = en.startMs - (prev.startMs + prev.time);
+            if (gap > 0) text += `  ↓ ${formatMs(gap)} gap\n`;
+            else text += `  ↓\n`;
+          }
+          const flag = (en.status >= 400 || en.status === 0) ? ' ⚠️' : '';
+          text += `#${en.seq}  ${en.method} ${en.status} ${en.domain}${truncate(en.path, 80)}  ${formatMs(en.time)}${flag}\n`;
+        });
+        text += `${'─'.repeat(50)}\nTotal: ${chain.entries.length} requests · ${formatMs(chain.totalTime)}`;
+        navigator.clipboard.writeText(text).then(() => {
+          showGuidToast('Chain copied to clipboard');
+        }).catch(() => {});
+      });
+    });
+  }
+
+  // Correlation search
+  corrSearchInput.addEventListener('input', () => {
+    renderCorrFlow(corrSearchInput.value);
+  });
+
+  // Copy all chains
+  document.getElementById('btn-copy-all-chains').addEventListener('click', () => {
+    if (!currentCorrData || currentCorrData.length === 0) return;
+    let text = '# Correlation Flow Chains\n\n';
+    currentCorrData.forEach(chain => {
+      text += `## ${chain.header}: ${chain.id}\n`;
+      chain.entries.forEach((en, i) => {
+        if (i > 0) {
+          const prev = chain.entries[i - 1];
+          const gap = en.startMs - (prev.startMs + prev.time);
+          if (gap > 0) text += `  ↓ ${formatMs(gap)} gap\n`;
+          else text += `  ↓\n`;
+        }
+        const flag = (en.status >= 400 || en.status === 0) ? ' ⚠️' : '';
+        text += `#${en.seq}  ${en.method} ${en.status} ${en.domain}${truncate(en.path, 80)}  ${formatMs(en.time)}${flag}\n`;
+      });
+      text += `Total: ${chain.entries.length} requests · ${formatMs(chain.totalTime)}\n\n`;
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      showGuidToast('All chains copied to clipboard');
+    }).catch(() => {});
+  });
+
+  // Expand/collapse all chains
+  document.getElementById('btn-expand-all-chains').addEventListener('click', () => {
+    corrAllExpanded = !corrAllExpanded;
+    const btn = document.getElementById('btn-expand-all-chains');
+    btn.textContent = corrAllExpanded ? 'Collapse All' : 'Expand All';
+    corrBody.querySelectorAll('.corr-chain').forEach(el => {
+      if (corrAllExpanded) el.classList.add('expanded');
+      else el.classList.remove('expanded');
+    });
   });
 
   // ── GUID Extractor Engine ────────────────────────────────
@@ -2780,6 +3997,9 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     contentSplit.style.display = '';
     resizeHandle.style.display = '';
     guidExtractor.classList.add('hidden');
+    errorExtractor.classList.add('hidden');
+    corrFlow.classList.add('hidden');
+    tokenDecoder.classList.add('hidden');
 
     const entry = entries.find(e => e.seq === seq);
     if (!entry) return;
