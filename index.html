@@ -2024,15 +2024,48 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
   });
 
-  // ── PII Masking & Copy to Copilot ─────────────────────
+  // ── PII Masking & Export to LLM ─────────────────────
   function maskPII(text) {
     let ipCounter = 0, tokenCounter = 0, keyCounter = 0, emailCounter = 0;
+    let phoneCounter = 0, ssnCounter = 0, ccCounter = 0, cookieCounter = 0, uuidCounter = 0, credCounter = 0;
     const ipMap = {}, tokenMap = {}, keyMap = {}, emailMap = {};
+    const phoneMap = {}, ssnMap = {}, ccMap = {}, cookieMap = {}, uuidMap = {}, credMap = {};
+
+    // Mask URL-embedded credentials (user:pass@host) — before email masking
+    text = text.replace(/:\/\/([^\/\s@]+):([^\/\s@]+)@/g, (full, user, pass) => {
+      const key = user + ':' + pass;
+      if (!credMap[key]) credMap[key] = `[CRED-${++credCounter}]`;
+      return `://${credMap[key]}@`;
+    });
 
     // Mask emails
     text = text.replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, (m) => {
       if (!emailMap[m]) emailMap[m] = `[EMAIL-${++emailCounter}]`;
       return emailMap[m];
+    });
+
+    // Mask SSNs (###-##-####)
+    text = text.replace(/\b\d{3}-\d{2}-\d{4}\b/g, (m) => {
+      if (!ssnMap[m]) ssnMap[m] = `[SSN-${++ssnCounter}]`;
+      return ssnMap[m];
+    });
+
+    // Mask credit card numbers (common formats)
+    text = text.replace(/\b(?:\d[ \-]?){13,19}\b/g, (m) => {
+      const digits = m.replace(/[\s\-]/g, '');
+      if (digits.length < 13 || digits.length > 19) return m;
+      if (!ccMap[digits]) ccMap[digits] = `[CC-${++ccCounter}]`;
+      return ccMap[digits];
+    });
+
+    // Mask phone numbers (international & US formats)
+    text = text.replace(/(?:\+\d{1,3}[\s\-]?)?(?:\(?\d{3}\)?[\s\-]?)?\d{3}[\s\-]?\d{4}\b/g, (m) => {
+      const digits = m.replace(/\D/g, '');
+      if (digits.length < 7 || digits.length > 15) return m;
+      // Skip if looks like a version, port, or timestamp
+      if (/^\d{1,5}$/.test(digits)) return m;
+      if (!phoneMap[m]) phoneMap[m] = `[PHONE-${++phoneCounter}]`;
+      return phoneMap[m];
     });
 
     // Mask IPv4
@@ -2042,10 +2075,28 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       return ipMap[m];
     });
 
-    // Mask IPv6 (simplified)
+    // Mask IPv6 (full, compressed, and loopback forms)
     text = text.replace(/(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}/g, (m) => {
       if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
       return ipMap[m];
+    });
+    text = text.replace(/(?:[0-9a-fA-F]{1,4}:){1,7}:/g, (m) => {
+      if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
+      return ipMap[m];
+    });
+    text = text.replace(/:(?::[0-9a-fA-F]{1,4}){1,7}/g, (m) => {
+      if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
+      return ipMap[m];
+    });
+    text = text.replace(/(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}/g, (m) => {
+      if (!ipMap[m]) ipMap[m] = `[IP-${++ipCounter}]`;
+      return ipMap[m];
+    });
+
+    // Mask UUIDs / GUIDs
+    text = text.replace(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g, (m) => {
+      if (!uuidMap[m]) uuidMap[m] = `[UUID-${++uuidCounter}]`;
+      return uuidMap[m];
     });
 
     // Mask Bearer tokens
@@ -2054,12 +2105,41 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       return tokenMap[m];
     });
 
-    // Mask long hex/base64 strings (likely keys/tokens) - 32+ chars
-    text = text.replace(/[A-Za-z0-9+\/\-_]{32,}={0,3}/g, (m) => {
-      // Skip common non-sensitive patterns
+    // Mask Basic Auth
+    text = text.replace(/Basic\s+[A-Za-z0-9+\/]+=*/g, (m) => {
+      if (!tokenMap[m]) tokenMap[m] = `Basic [TOKEN-${++tokenCounter}]`;
+      return tokenMap[m];
+    });
+
+    // Mask Cookie / Set-Cookie values
+    text = text.replace(/((?:Set-)?Cookie:\s*)([^\n\r]+)/gi, (full, prefix, cookies) => {
+      const masked = cookies.replace(/([^=;\s]+)=([^;\s]+)/g, (pair, name, value) => {
+        if (value.length < 8) return pair; // skip short non-sensitive values
+        const key = name + '=' + value;
+        if (!cookieMap[key]) cookieMap[key] = `${name}=[COOKIE-${++cookieCounter}]`;
+        return cookieMap[key];
+      });
+      return prefix + masked;
+    });
+
+    // Mask JWT tokens (eyJ...)
+    text = text.replace(/eyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/g, (m) => {
+      if (!tokenMap[m]) tokenMap[m] = `[JWT-${++tokenCounter}]`;
+      return tokenMap[m];
+    });
+
+    // Mask long hex/base64 strings (likely keys/tokens) - 20+ chars
+    text = text.replace(/[A-Za-z0-9+\/\-_]{20,}={0,3}/g, (m) => {
+      // Skip common non-sensitive patterns (lowercase words, URLs paths)
       if (/^[a-z\-]+$/i.test(m)) return m;
+      if (/^https?/i.test(m)) return m;
       if (!keyMap[m]) keyMap[m] = `[KEY-${++keyCounter}]`;
       return keyMap[m];
+    });
+
+    // Mask sensitive query string parameter values
+    text = text.replace(/([?&](?:password|passwd|pwd|secret|token|api_key|apikey|access_token|auth|session|ssn|credit_card)=)([^&\s#]+)/gi, (full, param, value) => {
+      return param + '[REDACTED]';
     });
 
     return text;
