@@ -133,6 +133,12 @@ header .logo {
   transition: all 0.15s; white-space: nowrap;
 }
 .btn-sm:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.btn-reset-filters {
+  width: 100%; margin-top: 4px; padding: 4px 8px; border-radius: 6px; font-size: 11px;
+  cursor: pointer; border: 1px dashed var(--text-muted); background: transparent;
+  color: var(--text-muted); transition: all 0.15s; text-align: center;
+}
+.btn-reset-filters:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
 
 /* ── Drop Zone / Landing Hero ────────────────────────────── */
 #drop-screen {
@@ -571,6 +577,7 @@ header .logo {
 mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; padding: 0 1px; }
 
 /* ── Flag / Bookmark ─────────────────────────────────────── */
+.seq-cell { width: 36px; min-width: 36px; text-align: center; font-size: 11px; color: var(--cyan); font-variant-numeric: tabular-nums; }
 .flag-cell { width: 30px; min-width: 30px; text-align: center; }
 .flag-btn {
   background: none; border: none; cursor: pointer; font-size: 13px;
@@ -615,9 +622,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 /* ── Insights Panel ──────────────────────────────────────── */
 .insights-panel {
   background: var(--surface); border-bottom: 1px solid var(--border);
-  overflow-y: auto; flex-shrink: 0; max-height: 45vh;
+  overflow-y: auto; flex-shrink: 0; max-height: 60vh; min-height: 40px;
 }
 .insights-panel.hidden { display: none; }
+.insights-panel.hidden + .resize-handle-h { display: none; }
 .insights-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
@@ -922,6 +930,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         <select class="sidebar-select" id="filter-type">
           <option value="">All Types</option>
         </select>
+        <button class="btn-reset-filters" id="btn-reset-filters" title="Reset dropdown filters">🔄 Reset Filters</button>
       </div>
 
       <!-- Quick Filters -->
@@ -959,12 +968,13 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <div class="insights-header">
         <h3>🔎 Insights <span class="badge" id="insights-badge"></span></h3>
         <div class="insights-actions">
-          <button class="btn-copy-copilot" id="btn-copy-copilot" title="Copy findings to clipboard (PII masked) for use with Copilot">📋 Copy to Copilot</button>
+          <button class="btn-copy-copilot" id="btn-copy-copilot" title="Copy findings to clipboard (PII masked) for use with LLMs">📋 Export prompt for LLM</button>
           <button class="btn-toggle-insights" id="btn-toggle-insights">Collapse</button>
         </div>
       </div>
       <div class="insights-body" id="insights-body"></div>
     </div>
+    <div class="resize-handle-h" id="insights-resize-handle"></div>
 
     <!-- Content Split: table on top, detail on bottom -->
     <div class="content-split">
@@ -973,6 +983,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         <table class="request-table" id="request-table">
           <thead>
             <tr>
+              <th class="seq-cell" data-sort="seq" style="cursor:pointer"># <span class="sort-arrow"></span></th>
               <th class="flag-cell" style="cursor:default">🚩</th>
               <th data-sort="status" style="width:70px">Status <span class="sort-arrow"></span></th>
               <th data-sort="method" style="width:70px">Method <span class="sort-arrow"></span></th>
@@ -1350,6 +1361,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   filterDomain.addEventListener('change', applyFilters);
   filterType.addEventListener('change', applyFilters);
 
+  document.getElementById('btn-reset-filters').addEventListener('click', () => {
+    filterMethod.value = '';
+    filterStatus.value = '';
+    filterDomain.value = '';
+    filterType.value = '';
+    applyFilters();
+  });
+
   document.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const f = chip.dataset.filter;
@@ -1458,7 +1477,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       if (gapsBefore.has(e.seq)) {
         const gapTr = document.createElement('tr');
         gapTr.classList.add('time-gap-row');
-        gapTr.innerHTML = `<td colspan="9"><div class="time-gap-bar">⏱ ${formatMs(gapAmounts[e.seq])} gap</div></td>`;
+        gapTr.innerHTML = `<td colspan="10"><div class="time-gap-bar">⏱ ${formatMs(gapAmounts[e.seq])} gap</div></td>`;
         fragment.appendChild(gapTr);
       }
 
@@ -1470,6 +1489,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
       const isFlagged = flaggedEntries.has(e.seq);
       tr.innerHTML = `
+        <td class="seq-cell">${e.seq}</td>
         <td class="flag-cell"><button class="flag-btn${isFlagged ? ' flagged' : ''}" data-seq="${e.seq}" title="Toggle flag">${isFlagged ? '🚩' : '⚑'}</button></td>
         <td><span class="status-badge status-${statusClass(e.status)}">${e.status || '—'}</span></td>
         <td><span class="method-badge method-${e.method}">${e.method}</span></td>
@@ -1746,6 +1766,36 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       const diff = startY - e.clientY;
       const newH = Math.max(120, Math.min(window.innerHeight * 0.7, startH + diff));
       detailPane.style.height = newH + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (dragging) {
+        dragging = false;
+        handle.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    });
+  })();
+
+  // ── Resize Handle (insights panel) ─────────────────────
+  (function initInsightsResize() {
+    const handle = document.getElementById('insights-resize-handle');
+    const panel = document.getElementById('insights-panel');
+    let dragging = false, startY, startH;
+    handle.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startH = panel.offsetHeight;
+      handle.classList.add('dragging');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const diff = e.clientY - startY;
+      const newH = Math.max(40, Math.min(window.innerHeight * 0.6, startH + diff));
+      panel.style.height = newH + 'px';
+      panel.style.maxHeight = 'none';
     });
     document.addEventListener('mouseup', () => {
       if (dragging) {
@@ -2535,10 +2585,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         html += `<div class="guid-var-header">`;
 
         if (isSingleton) {
-          // Singleton: show GUID inline, no expand
+          // Singleton: expandable, with chip below like multi-value
           const [guid, seqs] = [...v.values.entries()][0];
           const seqArr = [...seqs].sort((a, b) => a - b);
-          html += `<span class="chevron" style="visibility:hidden">▶</span>`;
+          html += `<span class="chevron">▶</span>`;
           html += `<span class="var-name">${esc(v.varName)}</span>`;
           if (v.label) html += `<span class="var-desc">${esc(v.label)}</span>`;
           html += `<span class="singleton-guid" data-guid="${guid}" title="Click to copy">${guid}</span>`;
@@ -2552,7 +2602,19 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
         html += `</div>`; // var-header
 
-        if (!isSingleton) {
+        if (isSingleton) {
+          const [guid, seqs] = [...v.values.entries()][0];
+          const seqArr = [...seqs].sort((a, b) => a - b);
+          html += `<div class="guid-var-body">`;
+          html += `<div class="guid-chip-grid">`;
+          html += `<span class="guid-chip" data-guid="${guid}" data-seqs="${seqArr.join(',')}" title="${seqArr.length}× — Click to go to request">`;
+          html += `${guid}`;
+          if (seqArr.length > 1) html += `<span class="chip-count">${seqArr.length}×</span>`;
+          html += `<span class="chip-copy" title="Copy to clipboard">📋</span>`;
+          html += `</span>`;
+          html += `</div>`;
+          html += `</div>`;
+        } else if (!isSingleton) {
           html += `<div class="guid-var-body">`;
           html += `<div class="guid-chip-grid">`;
           const sortedValues = [...v.values.entries()].sort((a, b) => b[1].size - a[1].size);
@@ -2592,17 +2654,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       });
     });
 
-    // Variable expand/collapse (only multi-value ones)
+    // Variable expand/collapse
     guidBody.querySelectorAll('.guid-var-header').forEach(header => {
       const variable = header.parentElement;
-      const isSingleton = !variable.querySelector('.guid-var-body');
-      if (!isSingleton) {
-        header.addEventListener('click', (ev) => {
-          // Don't toggle if clicking the singleton guid
-          if (ev.target.closest('.singleton-guid')) return;
-          variable.classList.toggle('expanded');
-        });
-      }
+      header.addEventListener('click', (ev) => {
+        // Don't toggle if clicking the singleton guid
+        if (ev.target.closest('.singleton-guid')) return;
+        variable.classList.toggle('expanded');
+      });
     });
 
     // Copy singleton GUIDs
