@@ -256,6 +256,14 @@ header .logo {
   background: var(--surface2); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center; font-size: 15px;
 }
+.hero-counters {
+  display: flex; align-items: center; gap: 16px; margin-top: 20px;
+  justify-content: center; font-size: 13px; color: var(--text-muted);
+}
+.hero-counter { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.counter-num { font-size: 22px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.counter-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.hero-counter-sep { font-size: 20px; color: var(--border); }
 
 /* Drag-over state: entire screen glows */
 #drop-screen.dragover {
@@ -1313,6 +1321,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   appInsights.loadAppInsights();
   appInsights.trackPageView();
 </script>
+<script>
+  function updateCounterDisplay(data) {
+    document.getElementById('cnt-views').textContent = data.pageViews.toLocaleString();
+    document.getElementById('cnt-hars').textContent = data.harsLoaded.toLocaleString();
+    document.getElementById('hero-counters').style.display = '';
+  }
+  fetch('/api/counter?action=pageView').then(r => r.json()).then(updateCounterDisplay).catch(() => {});
+</script>
 </head>
 <body>
 
@@ -1355,6 +1371,11 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <div class="hero-feature"><span class="feat-icon">⚠️</span> Auto-detect errors</div>
       <div class="hero-feature"><span class="feat-icon">🔑</span> GUID extraction</div>
       <div class="hero-feature"><span class="feat-icon">🤖</span> Copilot-ready</div>
+    </div>
+    <div class="hero-counters" id="hero-counters" style="display:none">
+      <div class="hero-counter"><span class="counter-num" id="cnt-views">—</span><span class="counter-label">page visits</span></div>
+      <div class="hero-counter-sep">·</div>
+      <div class="hero-counter"><span class="counter-num" id="cnt-hars">—</span><span class="counter-label">HARs analyzed</span></div>
     </div>
     <br>
     <div style="margin-top:18px;font-size:.85em;color:var(--text);max-width:420px;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;background:var(--red-dim);margin-left:auto;margin-right:auto;text-align:center;">🔒 <strong>Privacy disclaimer:</strong> Your files never leave your browser. All processing is done locally - no data is uploaded to any server.</div>
@@ -1963,6 +1984,7 @@ function sendSectionBlockToTransform(btn) {
     if (typeof appInsights !== 'undefined') {
       appInsights.trackEvent({ name: 'har-loaded', properties: { fileName: fileName, entryCount: String(entries.length) } });
     }
+    fetch('/api/counter?action=harLoaded').then(r => r.json()).then(updateCounterDisplay).catch(() => {});
   }
 
   function parseUrl(urlStr) {
