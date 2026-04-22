@@ -264,6 +264,11 @@ header .logo {
 .counter-num { font-size: 22px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .counter-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
 .hero-counter-sep { font-size: 20px; color: var(--border); }
+.footer-stats {
+  font-size: 12px; color: var(--text-muted); text-align: center;
+  margin-bottom: 10px; letter-spacing: 0.3px;
+}
+.footer-stats span { color: var(--accent); font-weight: 600; }
 
 /* Drag-over state: entire screen glows */
 #drop-screen.dragover {
@@ -1325,7 +1330,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   function updateCounterDisplay(data) {
     document.getElementById('cnt-views').textContent = data.pageViews.toLocaleString();
     document.getElementById('cnt-hars').textContent = data.harsLoaded.toLocaleString();
-    document.getElementById('hero-counters').style.display = '';
+    document.getElementById('hero-counters').style.display = 'block';
   }
   fetch('/api/counter?action=pageView').then(r => r.json()).then(updateCounterDisplay).catch(() => {});
 </script>
@@ -1372,11 +1377,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <div class="hero-feature"><span class="feat-icon">🔑</span> GUID extraction</div>
       <div class="hero-feature"><span class="feat-icon">🤖</span> Copilot-ready</div>
     </div>
-    <div class="hero-counters" id="hero-counters" style="display:none">
-      <div class="hero-counter"><span class="counter-num" id="cnt-views">—</span><span class="counter-label">page visits</span></div>
-      <div class="hero-counter-sep">·</div>
-      <div class="hero-counter"><span class="counter-num" id="cnt-hars">—</span><span class="counter-label">HARs analyzed</span></div>
-    </div>
     <br>
     <div style="margin-top:18px;font-size:.85em;color:var(--text);max-width:420px;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;background:var(--red-dim);margin-left:auto;margin-right:auto;text-align:center;">🔒 <strong>Privacy disclaimer:</strong> Your files never leave your browser. All processing is done locally - no data is uploaded to any server.</div>
     <input type="file" id="file-input" accept=".har,.json">
@@ -1384,6 +1384,9 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   <!-- Landing Footer -->
   <div class="landing-footer">
+    <div class="footer-stats" id="hero-counters" style="display:none">
+      🔬 <span id="cnt-views">—</span> visits · <span id="cnt-hars">—</span> HARs analyzed
+    </div>
     <a class="github-link" href="https://github.com/AMBIENTCORE/pHARser" target="_blank" rel="noopener noreferrer">
       <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       View on GitHub
