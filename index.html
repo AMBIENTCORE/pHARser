@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>pHARser - Network Trace Analyzer Tool</title>
 <style>
 /* ── Theme Variables ─────────────────────────────────────── */
-:root, [data-theme="dark"] {
+:root {
   --bg: #1e1e1e;
   --surface: #252526;
   --surface2: #2d2d2d;
@@ -34,43 +34,10 @@
   --timing-send: #FFA726;
   --timing-wait: #EF5350;
   --timing-receive: #26C6DA;
-  --scrollbar-thumb: #3e3e3e;
+  --scrollbar-thumb: #555;
   --scrollbar-track: transparent;
   --sidebar-bg: #1e1e1e;
   --header-gradient: linear-gradient(135deg, #252526 0%, #2d2d2d 100%);
-}
-[data-theme="light"] {
-  --bg: #f5f5f5;
-  --surface: #ffffff;
-  --surface2: #fafafa;
-  --surface3: #eeeeee;
-  --border: #e0e0e0;
-  --text: #424242;
-  --text-muted: #9e9e9e;
-  --heading: #212121;
-  --accent: #388E3C;
-  --accent-hover: #2E7D32;
-  --accent-dim: rgba(56,142,60,0.1);
-  --green: #388E3C;
-  --green-dim: rgba(56,142,60,0.1);
-  --orange: #F57C00;
-  --orange-dim: rgba(245,124,0,0.1);
-  --red: #D32F2F;
-  --red-dim: rgba(211,47,47,0.1);
-  --purple: #7B1FA2;
-  --cyan: #0097A7;
-  --pink: #C2185B;
-  --timing-blocked: #9e9e9e;
-  --timing-dns: #1E88E5;
-  --timing-connect: #43A047;
-  --timing-ssl: #8E24AA;
-  --timing-send: #EF6C00;
-  --timing-wait: #E53935;
-  --timing-receive: #00ACC1;
-  --scrollbar-thumb: #bdbdbd;
-  --scrollbar-track: transparent;
-  --sidebar-bg: #fafafa;
-  --header-gradient: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
 }
 
 /* ── Reset & Base ────────────────────────────────────────── */
@@ -85,9 +52,9 @@ body {
   display: flex;
   flex-direction: column;
 }
-::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* ── Header ──────────────────────────────────────────────── */
@@ -123,11 +90,11 @@ header .logo {
 .header-filename {
   display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);
   background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-  padding: 3px 10px; max-width: 300px; overflow: hidden;
+  padding: 3px 10px; overflow: hidden;
 }
 .header-filename .fn-icon { font-size: 11px; flex-shrink: 0; }
 .header-filename .fn-text {
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  white-space: nowrap;
   font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px;
   color: var(--cyan);
 }
@@ -153,8 +120,8 @@ header .logo {
 
 /* ── Drop Zone / Landing Hero ────────────────────────────── */
 #drop-screen {
-  display: flex; align-items: center; justify-content: center;
-  flex: 1; position: relative; overflow: hidden; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; position: relative; overflow-y: auto; overflow-x: hidden; cursor: pointer;
 }
 #drop-screen.hidden { display: none; }
 
@@ -242,7 +209,8 @@ header .logo {
 /* Hero content */
 .hero-content {
   position: relative; z-index: 1; text-align: center;
-  max-width: 640px; padding: 40px;
+  max-width: 640px; padding: 40px; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .hero-title {
   font-size: 56px; font-weight: 800; letter-spacing: -2px;
@@ -303,14 +271,67 @@ header .logo {
 }
 #file-input { display: none; }
 
+/* ── Landing Footer ──────────────────────────────────────── */
+.landing-footer {
+  position: relative; z-index: 2; flex-shrink: 0;
+  padding: 24px 24px 20px; text-align: center; width: 100%;
+}
+.landing-footer .github-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-muted); font-size: 13px; text-decoration: none;
+  padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface2); transition: all 0.15s;
+}
+.landing-footer .github-link:hover {
+  color: var(--text); border-color: var(--accent); background: var(--accent-dim);
+}
+.landing-footer .github-link svg {
+  width: 16px; height: 16px; fill: currentColor;
+}
+.feedback-section {
+  margin-top: 20px; max-width: 420px; margin-left: auto; margin-right: auto;
+}
+.feedback-toggle {
+  background: none; border: none; color: var(--text-muted); font-size: 12px;
+  cursor: pointer; padding: 4px 8px; transition: color 0.15s;
+}
+.feedback-toggle:hover { color: var(--accent); }
+.feedback-form {
+  display: none; margin-top: 12px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; animation: fadeIn 0.2s ease;
+}
+.feedback-form.visible { display: block; }
+.feedback-form label {
+  display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.feedback-form input, .feedback-form textarea, .feedback-form select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 13px;
+  font-family: inherit; outline: none; margin-bottom: 12px; resize: vertical;
+}
+.feedback-form input:focus, .feedback-form textarea:focus, .feedback-form select:focus {
+  border-color: var(--accent);
+}
+.feedback-form textarea { min-height: 80px; }
+.feedback-form select option { background: var(--surface); }
+.feedback-submit {
+  background: var(--accent); color: #fff; border: none; padding: 8px 24px;
+  border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; width: 100%;
+}
+.feedback-submit:hover { background: var(--accent-hover); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ── App Layout (post-load) ──────────────────────────────── */
 #app-screen { display: none; flex: 1; overflow: hidden; }
 #app-screen.active { display: flex; flex-direction: row; }
 
 /* ── Left Sidebar ────────────────────────────────────────── */
 .sidebar {
-  width: 240px;
-  min-width: 200px;
+  width: 270px;
+  min-width: 230px;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
   display: flex;
@@ -336,6 +357,51 @@ header .logo {
   opacity: 1;
   transition: opacity 0.15s ease;
 }
+.sidebar-footer {
+  flex-shrink: 0; padding: 12px 14px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.sidebar-footer .github-link {
+  display: inline-flex; align-items: center; gap: 6px; width: 100%;
+  color: var(--text-muted); font-size: 11px; text-decoration: none;
+  padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface2); transition: all 0.15s; justify-content: center;
+}
+.sidebar-footer .github-link:hover {
+  color: var(--text); border-color: var(--accent); background: var(--accent-dim);
+}
+.sidebar-footer .github-link svg { width: 14px; height: 14px; fill: currentColor; }
+.sidebar-footer .feedback-toggle {
+  background: none; border: none; color: var(--text-muted); font-size: 11px;
+  cursor: pointer; padding: 2px 4px; transition: color 0.15s;
+}
+.sidebar-footer .feedback-toggle:hover { color: var(--accent); }
+.sidebar-footer .feedback-form {
+  display: none; width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px; animation: fadeIn 0.2s ease;
+}
+.sidebar-footer .feedback-form.visible { display: block; }
+.sidebar-footer .feedback-form label {
+  display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 3px;
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.sidebar-footer .feedback-form select,
+.sidebar-footer .feedback-form textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 5px 8px; border-radius: 6px; font-size: 11px;
+  font-family: inherit; outline: none; margin-bottom: 8px; resize: vertical;
+}
+.sidebar-footer .feedback-form select option { background: var(--surface); }
+.sidebar-footer .feedback-form textarea { min-height: 60px; }
+.sidebar-footer .feedback-form select:focus,
+.sidebar-footer .feedback-form textarea:focus { border-color: var(--accent); }
+.sidebar-footer .feedback-submit {
+  background: var(--accent); color: #fff; border: none; padding: 5px 12px;
+  border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; width: 100%;
+}
+.sidebar-footer .feedback-submit:hover { background: var(--accent-hover); }
 .sidebar-section h3 {
   font-size: 10px;
   font-weight: 600;
@@ -357,6 +423,26 @@ header .logo {
 }
 .sidebar-section .search-box input::placeholder { color: var(--text-muted); }
 .sidebar-section .search-box .icon { font-size: 12px; color: var(--text-muted); }
+.search-scope-btn {
+  background: var(--surface3); border: 1px solid var(--border); cursor: pointer; font-size: 12px;
+  color: var(--accent); flex-shrink: 0; padding: 2px 5px; border-radius: 4px;
+  transition: all 0.15s; position: relative; line-height: 1;
+}
+.search-scope-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+.search-scope-popup {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); min-width: 130px; display: none;
+  overflow: hidden;
+}
+.search-scope-popup.visible { display: block; }
+.search-scope-opt {
+  padding: 6px 12px; font-size: 12px; cursor: pointer;
+  color: var(--text); display: flex; align-items: center; gap: 8px;
+  transition: background 0.1s;
+}
+.search-scope-opt:hover { background: var(--surface2); }
+.search-scope-opt.active { color: var(--accent); font-weight: 600; }
 .sidebar-select {
   background: var(--surface2); border: 1px solid var(--border);
   color: var(--text); padding: 5px 8px; border-radius: 6px; font-size: 12px;
@@ -413,20 +499,20 @@ header .logo {
 .request-list-pane {
   flex: 1; overflow-y: auto; overflow-x: auto; min-height: 120px;
 }
-.request-table { width: 100%; border-collapse: collapse; }
+.request-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .request-table thead { position: sticky; top: 0; z-index: 5; }
 .request-table th {
   background: var(--surface); text-align: left; padding: 7px 12px;
   font-size: 10px; font-weight: 600; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border); cursor: pointer; user-select: none;
-  white-space: nowrap;
+  white-space: nowrap; position: relative; overflow: hidden;
 }
 .request-table th:hover { color: var(--accent); }
 .request-table th .sort-arrow { margin-left: 4px; font-size: 10px; }
 .request-table td {
   padding: 5px 12px; font-size: 12px; border-bottom: 1px solid var(--border);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   vertical-align: middle;
 }
 .request-table tr { cursor: pointer; transition: background 0.1s; }
@@ -434,6 +520,14 @@ header .logo {
 .request-table tbody tr.selected { background: var(--accent-dim); }
 .request-table tbody tr.error-row td:first-child { border-left: 3px solid var(--red); }
 .request-table tbody tr.slow-row td:first-child { border-left: 3px solid var(--orange); }
+
+/* Column resize handles */
+.resizable-th { overflow: visible !important; }
+.col-resize-handle {
+  position: absolute; top: 0; right: 0; width: 5px; height: 100%;
+  cursor: col-resize; z-index: 6;
+}
+.col-resize-handle:hover, .col-resize-handle.active { background: var(--accent); opacity: 0.4; }
 
 /* Status badge */
 .status-badge {
@@ -517,12 +611,30 @@ header .logo {
 .detail-section h4 {
   font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 8px;
   text-transform: uppercase; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 0px;
 }
+.detail-section h4 button:last-of-type { margin-right: 8px; }
+.copy-btn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 12px; padding: 1px 4px; border-radius: 4px; opacity: 0.4;
+  transition: all 0.15s; flex-shrink: 0; line-height: 1;
+}
+.copy-btn:hover { opacity: 1; color: var(--accent); background: var(--accent-dim); }
+.copy-btn.copied { opacity: 1; color: var(--green); }
 .kv-table { width: 100%; border-collapse: collapse; }
 .kv-table td {
   padding: 3px 8px; font-size: 12px; border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
+.kv-table .kv-copy { width: 48px; padding: 3px 2px; text-align: center; white-space: nowrap; }
+.kv-table tr:hover .copy-btn { opacity: 0.7; }
+.kv-table tr:hover .transform-btn { opacity: 0.7; }
+.transform-btn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 12px; padding: 1px 4px; border-radius: 4px; opacity: 0.4;
+  transition: all 0.15s; flex-shrink: 0; line-height: 1;
+}
+.transform-btn:hover { opacity: 1; color: var(--purple); background: rgba(206,147,216,0.15); }
 .kv-table .kv-key {
   color: var(--accent); font-weight: 500; white-space: nowrap; width: 180px;
   font-family: 'Cascadia Code', 'Fira Code', monospace;
@@ -577,7 +689,7 @@ header .logo {
 mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; padding: 0 1px; }
 
 /* ── Flag / Bookmark ─────────────────────────────────────── */
-.seq-cell { width: 36px; min-width: 36px; text-align: center; font-size: 11px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.seq-cell { width: 48px; min-width: 48px; text-align: center; font-size: 11px; color: var(--cyan); font-variant-numeric: tabular-nums; }
 .flag-cell { width: 30px; min-width: 30px; text-align: center; }
 .flag-btn {
   background: none; border: none; cursor: pointer; font-size: 13px;
@@ -617,6 +729,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   transition: background 0.1s;
 }
 .ctx-menu-item:hover { background: var(--surface2); }
+.ctx-menu-item.disabled { opacity: 0.35; cursor: default; pointer-events: none; }
 .ctx-menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
 
 /* ── Insights Panel ──────────────────────────────────────── */
@@ -744,11 +857,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
 }
 .error-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
-.error-empty {
+
+/* Shared empty state for all tabs */
+.tab-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   height: 200px; color: var(--text-muted);
 }
-.error-empty .icon { font-size: 40px; margin-bottom: 12px; }
+.tab-empty .icon { font-size: 40px; margin-bottom: 12px; }
+.tab-empty p { font-size: 14px; }
 
 /* Error entry card */
 .error-entry {
@@ -839,12 +955,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
 }
 .corr-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
-.corr-empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 200px; color: var(--text-muted);
-}
-.corr-empty .icon { font-size: 40px; margin-bottom: 12px; }
-.corr-empty p { font-size: 14px; }
 
 /* Chain card */
 .corr-chain {
@@ -935,6 +1045,48 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 /* ── Token Decoder ────────────────────────────────────── */
 .token-decoder { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 .token-decoder.hidden { display: none; }
+
+/* ── Text Wizard ───────────────────────────────── */
+.text-wizard { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.text-wizard.hidden { display: none; }
+.text-wizard-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
+}
+.text-wizard-toolbar select {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  padding: 7px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; outline: none;
+  min-width: 220px;
+}
+.text-wizard-toolbar select:focus { border-color: var(--accent); }
+.text-wizard-toolbar select option { background: var(--surface); }
+.text-wizard-swap {
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.text-wizard-swap:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.text-wizard-panels { flex: 1; display: flex; gap: 0; min-height: 0; }
+.text-wizard-panel {
+  flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative;
+}
+.text-wizard-panel + .text-wizard-panel { border-left: 1px solid var(--border); }
+.text-wizard-panel label {
+  font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px; padding: 8px 12px 4px; flex-shrink: 0;
+}
+.text-wizard-panel textarea {
+  flex: 1; background: var(--bg); border: none; color: var(--text);
+  padding: 8px 12px; font-size: 12px; font-family: 'Cascadia Code', 'Fira Code', monospace;
+  resize: none; outline: none; line-height: 1.6;
+}
+.text-wizard-panel textarea::placeholder { color: var(--text-muted); }
+.text-wizard-error {
+  position: absolute; bottom: 8px; left: 12px; right: 12px;
+  color: var(--red); font-size: 11px; background: var(--red-dim);
+  padding: 4px 8px; border-radius: 4px; display: none;
+}
+.text-wizard-error.visible { display: block; }
 .token-toolbar {
   display: flex; align-items: center; gap: 10px; padding: 10px 16px;
   border-bottom: 1px solid var(--border); background: var(--surface2); flex-shrink: 0;
@@ -958,12 +1110,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
 }
 .token-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
-.token-empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 200px; color: var(--text-muted);
-}
-.token-empty .icon { font-size: 40px; margin-bottom: 12px; }
-.token-empty p { font-size: 14px; }
 
 /* Token card */
 .token-card {
@@ -1158,12 +1304,15 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .guid-copied-toast.visible { opacity: 1; }
-.guid-empty {
-  text-align: center; padding: 60px 24px; color: var(--text-muted);
-}
-.guid-empty .icon { font-size: 36px; margin-bottom: 12px; }
-.guid-empty p { font-size: 14px; }
 </style>
+<script src="https://js.monitor.azure.com/scripts/b/ai.3.gbl.min.js"></script>
+<script>
+  var appInsights = new Microsoft.ApplicationInsights.ApplicationInsights({ config: {
+    connectionString: 'InstrumentationKey=f7f56e20-6fda-457f-99b2-a61743ba9537;IngestionEndpoint=https://spaincentral-0.in.applicationinsights.azure.com/;LiveEndpoint=https://spaincentral.livediagnostics.monitor.azure.com/;ApplicationId=5fab295b-63e6-4d28-aa4b-a853b8815592'
+  }});
+  appInsights.loadAppInsights();
+  appInsights.trackPageView();
+</script>
 </head>
 <body>
 
@@ -1178,7 +1327,6 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   <div class="header-right">
     <button class="btn-sm" id="btn-new-file" style="display:none" title="Load another file">📂 New File</button>
     <button class="btn-icon" id="btn-sidebar" style="display:none" title="Toggle sidebar (Ctrl+B)">☰</button>
-    <button class="btn-icon" id="btn-theme" title="Toggle theme">🌙</button>
   </div>
 </header>
 
@@ -1212,6 +1360,28 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     <div style="margin-top:18px;font-size:.85em;color:var(--text);max-width:420px;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;background:var(--red-dim);margin-left:auto;margin-right:auto;text-align:center;">🔒 <strong>Privacy disclaimer:</strong> Your files never leave your browser. All processing is done locally - no data is uploaded to any server.</div>
     <input type="file" id="file-input" accept=".har,.json">
   </div>
+
+  <!-- Landing Footer -->
+  <div class="landing-footer">
+    <a class="github-link" href="https://github.com/AMBIENTCORE/pHARser" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      View on GitHub
+    </a>
+    <div class="feedback-section">
+      <button class="feedback-toggle" onclick="document.getElementById('feedback-form').classList.toggle('visible')">💬 Send Feedback</button>
+      <form class="feedback-form" id="feedback-form" onsubmit="submitFeedback(event)">
+        <label for="fb-type">Type</label>
+        <select id="fb-type">
+          <option value="Bug Report">🐛 Bug Report</option>
+          <option value="Feature Request">💡 Feature Request</option>
+          <option value="General Feedback" selected>💬 General Feedback</option>
+        </select>
+        <label for="fb-message">Message</label>
+        <textarea id="fb-message" placeholder="Tell us what you think..." required></textarea>
+        <button type="submit" class="feedback-submit">Send Feedback</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- ── App Screen ────────────────────────────────────────── -->
@@ -1222,9 +1392,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <!-- Search -->
       <div class="sidebar-section">
         <h3>Search</h3>
-        <div class="search-box">
-          <span class="icon">🔍</span>
-          <input type="text" id="search-input" placeholder="URL, domain, status, body...">
+        <div class="search-box" style="position:relative">
+          <button class="search-scope-btn" id="search-scope-btn" title="Search scope: All">🌐 ▾</button>
+          <div class="search-scope-popup" id="search-scope-popup">
+            <div class="search-scope-opt active" data-scope="all">🌐 Everywhere</div>
+            <div class="search-scope-opt" data-scope="domain">🔗 Domain only</div>
+            <div class="search-scope-opt" data-scope="path">📁 Path only</div>
+          </div>
+          <input type="text" id="search-input" placeholder="Search everywhere...">
         </div>
       </div>
 
@@ -1258,8 +1433,27 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
           <span class="filter-chip" data-filter="slow" title="Show requests > 1s">🐢 Slow (&gt;1s)</span>
           <span class="filter-chip" data-filter="large" title="Show responses > 1MB">📦 Large (&gt;1MB)</span>
           <span class="filter-chip" data-filter="flagged" title="Show flagged requests">🚩 Flagged</span>
+          <button class="btn-reset-filters" id="btn-clear-flags" title="Remove all flagged records">🚩 Clear All Flagged</button>
         </div>
       </div>
+    </div>
+    <div class="sidebar-footer">
+      <a class="github-link" href="https://github.com/AMBIENTCORE/pHARser" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+      <button class="feedback-toggle" onclick="document.getElementById('sidebar-feedback-form').classList.toggle('visible')">💬 Send Feedback</button>
+      <form class="feedback-form" id="sidebar-feedback-form" onsubmit="submitFeedback(event)">
+        <label for="sb-fb-type">Type</label>
+        <select id="sb-fb-type">
+          <option value="Bug Report">🐛 Bug Report</option>
+          <option value="Feature Request">💡 Feature Request</option>
+          <option value="General Feedback" selected>💬 General Feedback</option>
+        </select>
+        <label for="sb-fb-message">Message</label>
+        <textarea id="sb-fb-message" placeholder="Tell us what you think..." required></textarea>
+        <button type="submit" class="feedback-submit">Send Feedback</button>
+      </form>
     </div>
   </div>
 
@@ -1273,8 +1467,9 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <button class="view-btn active" data-view="trace">📋 Trace</button>
       <button class="view-btn" data-view="errors">⚠️ Error Messages</button>
       <button class="view-btn" data-view="guids">🔑 GUID Extractor</button>
-      <button class="view-btn" data-view="tokens">🎟️ Token Decoder</button>
       <button class="view-btn" data-view="corr">🔗 Correlation Flow</button>
+      <button class="view-btn" data-view="tokens">🎟️ Token Decoder</button>
+      <button class="view-btn" data-view="textwiz">🔣 Text Transform</button>
     </div>
 
     <!-- Insights Panel -->
@@ -1295,18 +1490,30 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       <!-- Request List -->
       <div class="request-list-pane" id="request-list-pane">
         <table class="request-table" id="request-table">
+          <colgroup>
+            <col style="width:48px">
+            <col style="width:30px">
+            <col style="width:70px">
+            <col style="width:70px">
+            <col id="col-domain" style="width:160px">
+            <col id="col-path">
+            <col style="width:80px">
+            <col style="width:80px">
+            <col style="width:80px">
+            <col style="width:220px">
+          </colgroup>
           <thead>
             <tr>
               <th class="seq-cell" data-sort="seq" style="cursor:pointer"># <span class="sort-arrow"></span></th>
               <th class="flag-cell" style="cursor:default">🚩</th>
-              <th data-sort="status" style="width:70px">Status <span class="sort-arrow"></span></th>
-              <th data-sort="method" style="width:70px">Method <span class="sort-arrow"></span></th>
-              <th data-sort="domain" style="width:160px">Domain <span class="sort-arrow"></span></th>
-              <th data-sort="path">Path <span class="sort-arrow"></span></th>
-              <th data-sort="type" style="width:80px">Type <span class="sort-arrow"></span></th>
-              <th data-sort="size" style="width:80px">Size <span class="sort-arrow"></span></th>
-              <th data-sort="time" style="width:80px">Time <span class="sort-arrow"></span></th>
-              <th class="waterfall-cell" style="width:220px">Waterfall</th>
+              <th data-sort="status">Status <span class="sort-arrow"></span></th>
+              <th data-sort="method">Method <span class="sort-arrow"></span></th>
+              <th data-sort="domain" class="resizable-th">Domain <span class="sort-arrow"></span><div class="col-resize-handle"></div></th>
+              <th data-sort="path" class="resizable-th">Path <span class="sort-arrow"></span><div class="col-resize-handle"></div></th>
+              <th data-sort="type">Type <span class="sort-arrow"></span></th>
+              <th data-sort="size">Size <span class="sort-arrow"></span></th>
+              <th data-sort="time">Time <span class="sort-arrow"></span></th>
+              <th class="waterfall-cell">Waterfall</th>
             </tr>
           </thead>
           <tbody id="request-tbody"></tbody>
@@ -1392,6 +1599,62 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       </div>
       <div class="corr-body" id="corr-body"></div>
     </div>
+
+    <!-- Text Wizard View -->
+    <div class="text-wizard hidden" id="text-wizard">
+      <div class="text-wizard-toolbar">
+        <select id="textwiz-transform">
+          <optgroup label="Base64">
+            <option value="text-to-base64">Text → Base64</option>
+            <option value="base64-to-text">Base64 → Text</option>
+          </optgroup>
+          <optgroup label="URL Encoding">
+            <option value="text-to-url">Text → URL Encoded</option>
+            <option value="url-to-text">URL Encoded → Text</option>
+          </optgroup>
+          <optgroup label="Hex">
+            <option value="text-to-hex">Text → Hex</option>
+            <option value="hex-to-text">Hex → Text</option>
+          </optgroup>
+          <optgroup label="HTML Encoding">
+            <option value="text-to-html">Text → HTML Encoded</option>
+            <option value="html-to-text">HTML Encoded → Text</option>
+          </optgroup>
+          <optgroup label="UTF-7">
+            <option value="text-to-utf7">Text → UTF-7</option>
+            <option value="utf7-to-text">UTF-7 → Text</option>
+          </optgroup>
+          <optgroup label="SAML">
+            <option value="text-to-deflated-saml">Text → Deflated SAML</option>
+            <option value="deflated-saml-to-text">Deflated SAML → Text</option>
+          </optgroup>
+          <optgroup label="Hashes (one-way)">
+            <option value="text-to-md5">Text → MD5</option>
+            <option value="text-to-sha1">Text → SHA-1</option>
+            <option value="text-to-sha256">Text → SHA-256</option>
+            <option value="text-to-sha384">Text → SHA-384</option>
+            <option value="text-to-sha512">Text → SHA-512</option>
+          </optgroup>
+          <optgroup label="Code Formats">
+            <option value="text-to-csharp-bytes">Text → C# byte[]</option>
+            <option value="text-to-js-string">Text → JS string</option>
+          </optgroup>
+        </select>
+        <button class="text-wizard-swap" id="textwiz-swap" title="Swap input ↔ output">⇄</button>
+        <button class="btn-sm" id="textwiz-clear">🗑 Clear</button>
+      </div>
+      <div class="text-wizard-panels">
+        <div class="text-wizard-panel">
+          <label>Input</label>
+          <textarea id="textwiz-input" placeholder="Paste or type text here — output updates automatically..."></textarea>
+        </div>
+        <div class="text-wizard-panel">
+          <label>Output</label>
+          <textarea id="textwiz-output" readonly placeholder="Result appears here..."></textarea>
+          <div class="text-wizard-error" id="textwiz-error"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1405,6 +1668,83 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 <div class="ctx-menu" id="ctx-menu"></div>
 
 <script>
+/* ── Feedback form mailto handler ──────────────────────── */
+function submitFeedback(e) {
+  e.preventDefault();
+  var form = e.target;
+  var type = form.querySelector('select').value;
+  var textarea = form.querySelector('textarea');
+  var message = textarea.value;
+  var subject = encodeURIComponent('[pHARser Feedback] ' + type);
+  var body = encodeURIComponent('Type: ' + type + '\n\n' + message);
+  window.location.href = 'mailto:edguerre@microsoft.com?subject=' + subject + '&body=' + body;
+  textarea.value = '';
+  form.classList.remove('visible');
+}
+
+/* ── Clipboard helpers for detail pane ─────────────────── */
+function flashCopied(btn) {
+  btn.classList.add('copied');
+  btn.textContent = '✅';
+  setTimeout(function() { btn.classList.remove('copied'); btn.textContent = '📋'; }, 1200);
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(function() { flashCopied(btn); });
+}
+
+function copySectionKV(btn) {
+  var section = btn.closest('.detail-section') || btn.closest('h4').parentElement;
+  var table = section.querySelector('.kv-table');
+  if (!table) return;
+  var lines = [];
+  table.querySelectorAll('tr').forEach(function(tr) {
+    var key = tr.querySelector('.kv-key');
+    var val = tr.querySelector('.kv-val');
+    if (key && val) lines.push(key.textContent + ': ' + val.textContent);
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(function() { flashCopied(btn); });
+}
+
+function copySectionBlock(btn) {
+  var section = btn.closest('.detail-section');
+  var block = section.querySelector('.code-block');
+  if (block) {
+    navigator.clipboard.writeText(block.textContent).then(function() { flashCopied(btn); });
+  } else {
+    copySectionKV(btn);
+  }
+}
+
+function copyTimingSection(btn) {
+  var section = btn.closest('.detail-section');
+  var lines = [];
+  section.querySelectorAll('.timing-row').forEach(function(row) {
+    var label = row.querySelector('.timing-label');
+    var value = row.querySelector('.timing-value');
+    if (label && value) lines.push(label.textContent + ': ' + value.textContent);
+  });
+  var total = section.querySelector('p[style*="font-weight"]');
+  if (total) lines.push(total.textContent);
+  navigator.clipboard.writeText(lines.join('\n')).then(function() { flashCopied(btn); });
+}
+
+/* ── Send to Text Transform helpers ────────────────────── */
+function sendToTransform(text) {
+  var input = document.getElementById('textwiz-input');
+  input.value = text;
+  input.dispatchEvent(new Event('input'));
+  var tabs = document.getElementById('view-tabs');
+  var btn = tabs.querySelector('[data-view="textwiz"]');
+  if (btn) btn.click();
+}
+
+function sendSectionBlockToTransform(btn) {
+  var section = btn.closest('.detail-section');
+  var block = section.querySelector('.code-block');
+  if (block) sendToTransform(block.textContent);
+}
+
 /* ================================================================
    pHARser — Single-page HAR visualization tool
    ================================================================ */
@@ -1430,6 +1770,8 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const searchInput = document.getElementById('search-input');
+  let searchScopeValue = 'all';
+  const searchScope = { get value() { return searchScopeValue; } };
   const filterMethod = document.getElementById('filter-method');
   const filterStatus = document.getElementById('filter-status');
   const filterDomain = document.getElementById('filter-domain');
@@ -1474,25 +1816,11 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   const tokenSearchInput = document.getElementById('token-search');
   let currentTokenData = null;
   let tokenAllExpanded = false;
-
-  // ── Theme ──────────────────────────────────────────────
-  (function initTheme() {
-    const saved = localStorage.getItem('ntv-theme');
-    if (saved) document.documentElement.setAttribute('data-theme', saved);
-    const btn = document.getElementById('btn-theme');
-    function update() {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      btn.textContent = isDark ? '🌙' : '☀️';
-    }
-    update();
-    btn.addEventListener('click', () => {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const next = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('ntv-theme', next);
-      update();
-    });
-  })();
+  const textWizard = document.getElementById('text-wizard');
+  const textwizInput = document.getElementById('textwiz-input');
+  const textwizOutput = document.getElementById('textwiz-output');
+  const textwizTransform = document.getElementById('textwiz-transform');
+  const textwizError = document.getElementById('textwiz-error');
 
   // ── Sidebar Toggle ─────────────────────────────────────
   btnSidebar.addEventListener('click', () => {
@@ -1565,6 +1893,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     tokenBody.innerHTML = '';
     tokenSearchInput.value = '';
     currentTokenData = null;
+    textWizard.classList.add('hidden');
+    textwizInput.value = '';
+    textwizOutput.value = '';
+    textwizError.textContent = '';
     // Reset view buttons to trace
     viewTabs.querySelectorAll('.view-btn').forEach(t => t.classList.remove('active'));
     viewTabs.querySelector('[data-view="trace"]').classList.add('active');
@@ -1628,6 +1960,9 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     });
 
     showApp(fileName);
+    if (typeof appInsights !== 'undefined') {
+      appInsights.trackEvent({ name: 'har-loaded', properties: { fileName: fileName, entryCount: String(entries.length) } });
+    }
   }
 
   function parseUrl(urlStr) {
@@ -1742,6 +2077,37 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   // ── Filtering ──────────────────────────────────────────
   searchInput.addEventListener('input', applyFilters);
+
+  // Search scope cycling button
+  (function initSearchScope() {
+    const btn = document.getElementById('search-scope-btn');
+    const popup = document.getElementById('search-scope-popup');
+    const scopes = [
+      { value: 'all', icon: '🌐', label: 'Everywhere', placeholder: 'Search everywhere...' },
+      { value: 'domain', icon: '🔗', label: 'Domain only', placeholder: 'Search domain...' },
+      { value: 'path', icon: '📁', label: 'Path only', placeholder: 'Search path...' },
+    ];
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      popup.classList.toggle('visible');
+    });
+    popup.addEventListener('click', (e) => {
+      const opt = e.target.closest('.search-scope-opt');
+      if (!opt) return;
+      const scope = opt.dataset.scope;
+      searchScopeValue = scope;
+      const s = scopes.find(x => x.value === scope);
+      btn.textContent = s.icon + ' ▾';
+      btn.title = 'Search scope: ' + s.label;
+      searchInput.placeholder = s.placeholder;
+      popup.querySelectorAll('.search-scope-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      popup.classList.remove('visible');
+      applyFilters();
+    });
+    document.addEventListener('click', () => popup.classList.remove('visible'));
+  })();
+
   filterMethod.addEventListener('change', applyFilters);
   filterStatus.addEventListener('change', applyFilters);
   filterDomain.addEventListener('change', applyFilters);
@@ -1752,6 +2118,14 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     filterStatus.value = '';
     filterDomain.value = '';
     filterType.value = '';
+    applyFilters();
+  });
+
+  document.getElementById('btn-clear-flags').addEventListener('click', () => {
+    flaggedEntries.clear();
+    const flaggedChip = document.querySelector('.filter-chip[data-filter="flagged"]');
+    activeQuickFilters.delete('flagged');
+    if (flaggedChip) { flaggedChip.classList.remove('active', 'flagged'); }
     applyFilters();
   });
 
@@ -1769,19 +2143,30 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   function applyFilters() {
     const q = searchInput.value.toLowerCase().trim();
+    const scope = searchScope.value;
     const method = filterMethod.value;
     const statusGroup = filterStatus.value;
     const domain = filterDomain.value;
     const type = filterType.value;
 
     filteredEntries = entries.filter(e => {
-      if (q && !(e.url.toLowerCase().includes(q) || e.domain.toLowerCase().includes(q) ||
+      if (q) {
+        let match = false;
+        if (scope === 'domain') {
+          match = e.domain.toLowerCase().includes(q);
+        } else if (scope === 'path') {
+          match = e.path.toLowerCase().includes(q);
+        } else {
+          match = e.url.toLowerCase().includes(q) || e.domain.toLowerCase().includes(q) ||
                   String(e.status).includes(q) || e.method.toLowerCase().includes(q) ||
                   e.resourceType.toLowerCase().includes(q) ||
                   (e.responseBody && e.responseBody.text && e.responseBody.text.toLowerCase().includes(q)) ||
                   (e.requestBody && e.requestBody.text && e.requestBody.text.toLowerCase().includes(q)) ||
                   e.requestHeaders.some(h => h.value.toLowerCase().includes(q)) ||
-                  e.responseHeaders.some(h => h.value.toLowerCase().includes(q)))) return false;
+                  e.responseHeaders.some(h => h.value.toLowerCase().includes(q));
+        }
+        if (!match) return false;
+      }
       if (method && e.method !== method) return false;
       if (statusGroup) {
         const group = Math.floor(e.status / 100) + 'xx';
@@ -1802,7 +2187,8 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   // ── Sorting ────────────────────────────────────────────
   document.querySelectorAll('.request-table th[data-sort]').forEach(th => {
-    th.addEventListener('click', () => {
+    th.addEventListener('click', (e) => {
+      if (e.target.closest('.col-resize-handle') || colResizing) return;
       const col = th.dataset.sort;
       if (sortCol === col) sortAsc = !sortAsc;
       else { sortCol = col; sortAsc = true; }
@@ -1812,6 +2198,46 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       renderTable();
     });
   });
+
+  // ── Column Resizing ────────────────────────────────────
+  let colResizing = false;
+  (function initColumnResize() {
+    const table = document.getElementById('request-table');
+    const cols = table.querySelectorAll('colgroup col');
+    const handles = table.querySelectorAll('.col-resize-handle');
+    handles.forEach(handle => {
+      let startX, startW, colEl;
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        colResizing = true;
+        const th = handle.closest('th');
+        const idx = Array.from(th.parentNode.children).indexOf(th);
+        colEl = cols[idx];
+        startX = e.clientX;
+        startW = th.offsetWidth;
+        handle.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        function onMove(ev) {
+          const diff = ev.clientX - startX;
+          const newW = Math.max(60, startW + diff);
+          colEl.style.width = newW + 'px';
+        }
+        function onUp() {
+          handle.classList.remove('active');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          setTimeout(() => { colResizing = false; }, 0);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    });
+  })();
 
   function sortEntries() {
     filteredEntries.sort((a, b) => {
@@ -1880,7 +2306,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
         <td><span class="status-badge status-${statusClass(e.status)}">${e.status || '—'}</span></td>
         <td><span class="method-badge method-${e.method}">${e.method}</span></td>
         <td title="${esc(e.domain)}">${esc(e.domain)}</td>
-        <td title="${esc(e.path)}">${esc(truncate(e.path, 80))}</td>
+        <td title="${esc(e.path)}">${esc(e.path)}</td>
         <td>${e.resourceType}</td>
         <td>${formatSize(e.size)}</td>
         <td>${formatMs(e.time)}</td>
@@ -2019,21 +2445,22 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   }
 
   function renderHeadersTab(e) {
-    let html = `<div class="detail-section"><h4>General</h4>`;
-    html += kvTable([
+    const generalPairs = [
       ['Request URL', e.url],
       ['Request Method', e.method],
       ['Status Code', `${e.status} ${e.statusText}`],
       ['Remote Address', e.serverIP || '—'],
       ['Connection', e.connection || '—'],
-    ]);
+    ];
+    let html = `<div class="detail-section"><h4><button class="copy-btn" title="Copy section" onclick="copySectionKV(this)">📋</button> General</h4>`;
+    html += kvTable(generalPairs);
     html += `</div>`;
 
-    html += `<div class="detail-section"><h4>Response Headers (${e.responseHeaders.length})</h4>`;
+    html += `<div class="detail-section"><h4><button class="copy-btn" title="Copy section" onclick="copySectionKV(this)">📋</button> Response Headers (${e.responseHeaders.length})</h4>`;
     html += kvTable(e.responseHeaders.map(h => [h.name, h.value]));
     html += `</div>`;
 
-    html += `<div class="detail-section"><h4>Request Headers (${e.requestHeaders.length})</h4>`;
+    html += `<div class="detail-section"><h4><button class="copy-btn" title="Copy section" onclick="copySectionKV(this)">📋</button> Request Headers (${e.requestHeaders.length})</h4>`;
     html += kvTable(e.requestHeaders.map(h => [h.name, h.value]));
     html += `</div>`;
 
@@ -2043,7 +2470,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   function renderPayloadTab(e) {
     if (!e.requestBody) return '<div class="no-results"><div class="icon">📭</div><p>No request payload</p></div>';
 
-    let html = `<div class="detail-section"><h4>Request Body</h4>`;
+    let html = `<div class="detail-section"><h4><button class="copy-btn" title="Copy section" onclick="copySectionBlock(this)">📋</button><button class="transform-btn" title="Send to Text Transform" onclick="sendSectionBlockToTransform(this)">🔣</button> Request Body</h4>`;
     html += `<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">MIME: ${esc(e.requestBody.mimeType || '—')}</p>`;
 
     const text = e.requestBody.text || '';
@@ -2053,7 +2480,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
 
     if (e.requestBody.params && e.requestBody.params.length) {
-      html += `<h4 style="margin-top:16px">Form Parameters</h4>`;
+      html += `<h4 style="margin-top:16px"><button class="copy-btn" title="Copy section" onclick="copySectionKV(this)">📋</button> Form Parameters</h4>`;
       html += kvTable(e.requestBody.params.map(p => [p.name, p.value || '']));
     }
 
@@ -2068,13 +2495,12 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
 
     let html = `<div class="detail-section">`;
-    html += `<h4>Response Body</h4>`;
+    html += `<h4><button class="copy-btn" title="Copy section" onclick="copySectionBlock(this)">📋</button><button class="transform-btn" title="Send to Text Transform" onclick="sendSectionBlockToTransform(this)">🔣</button> Response Body</h4>`;
     html += `<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">MIME: ${esc(content.mimeType || '—')} · Size: ${formatSize(content.size || 0)}</p>`;
 
     if (content.text) {
       const formatted = tryFormatJson(content.text);
       html += `<div class="code-block">${esc(formatted)}</div>`;
-    } else {
       html += `<p style="color:var(--text-muted);font-size:13px">Response body was not captured in the HAR file</p>`;
     }
 
@@ -2096,7 +2522,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
     const maxPhase = Math.max(...phases.map(p => t[p.key]), 1);
 
-    let html = `<div class="detail-section"><h4>Timing Breakdown</h4>`;
+    let html = `<div class="detail-section"><h4><button class="copy-btn" title="Copy timing" onclick="copyTimingSection(this)">📋</button> Timing Breakdown</h4>`;
     html += `<div class="timing-chart">`;
     phases.forEach(p => {
       const v = t[p.key];
@@ -2119,7 +2545,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     html += `</div>`;
 
     if (e.serverIP) {
-      html += `<div class="detail-section" style="margin-top:20px"><h4>Connection</h4>`;
+      html += `<div class="detail-section" style="margin-top:20px"><h4><button class="copy-btn" title="Copy section" onclick="copySectionKV(this)">📋</button> Connection</h4>`;
       html += kvTable([['Server IP', e.serverIP], ['Connection ID', e.connection || '—']]);
       html += `</div>`;
     }
@@ -2129,7 +2555,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   }
 
   function renderRawTab(e) {
-    let html = `<div class="detail-section"><h4>Raw HAR Entry</h4>`;
+    let html = `<div class="detail-section"><h4><button class="copy-btn" title="Copy section" onclick="copySectionBlock(this)">📋</button><button class="transform-btn" title="Send to Text Transform" onclick="sendSectionBlockToTransform(this)">🔣</button> Raw HAR Entry</h4>`;
     html += `<div class="code-block">${esc(JSON.stringify(e.raw, null, 2))}</div>`;
     html += `</div>`;
     return html;
@@ -2614,11 +3040,15 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   function showContextMenu(ev, entry) {
     ctxEntry = entry;
     const isFlagged = flaggedEntries.has(entry.seq);
+    const hasFlagged = flaggedEntries.size > 0;
     ctxMenu.innerHTML = `
       <div class="ctx-menu-item" data-action="flag">${isFlagged ? '🚩 Unflag' : '🚩 Flag'} request</div>
       <div class="ctx-menu-sep"></div>
-      <div class="ctx-menu-item" data-action="copy-url">📋 Copy URL</div>
+      <div class="ctx-menu-item" data-action="copy-url">📋 Copy request</div>
       <div class="ctx-menu-item" data-action="copy-response">📋 Copy response body</div>
+      <div class="ctx-menu-sep"></div>
+      <div class="ctx-menu-item${hasFlagged ? '' : ' disabled'}" data-action="copy-flagged">📋 Copy flagged requests</div>
+      <div class="ctx-menu-item${hasFlagged ? '' : ' disabled'}" data-action="copy-flagged-full">📋 Copy flagged with responses</div>
     `;
     let x = ev.clientX, y = ev.clientY;
     ctxMenu.classList.add('visible');
@@ -2643,10 +3073,21 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     if (action === 'flag') {
       toggleFlag(ctxEntry.seq);
     } else if (action === 'copy-url') {
-      navigator.clipboard.writeText(ctxEntry.url).catch(() => {});
+      navigator.clipboard.writeText(ctxEntry.method + ' ' + ctxEntry.url).catch(() => {});
     } else if (action === 'copy-response') {
       const text = (ctxEntry.responseBody && ctxEntry.responseBody.text) || '';
       navigator.clipboard.writeText(text).catch(() => {});
+    } else if (action === 'copy-flagged') {
+      const lines = entries.filter(e => flaggedEntries.has(e.seq))
+        .map(e => e.method + ' ' + e.status + ' ' + e.url);
+      navigator.clipboard.writeText(lines.join('\n')).catch(() => {});
+    } else if (action === 'copy-flagged-full') {
+      const blocks = entries.filter(e => flaggedEntries.has(e.seq))
+        .map(e => {
+          const body = (e.responseBody && e.responseBody.text) || '(empty)';
+          return '--- #' + e.seq + ': ' + e.method + ' ' + e.status + ' ' + e.url + ' ---\n' + body;
+        });
+      navigator.clipboard.writeText(blocks.join('\n\n')).catch(() => {});
     }
     hideContextMenu();
   });
@@ -2752,7 +3193,10 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
   function kvTable(pairs) {
     if (!pairs || !pairs.length) return '<p style="color:var(--text-muted);font-size:12px">None</p>';
     return '<table class="kv-table">' +
-      pairs.map(([k, v]) => `<tr><td class="kv-key">${esc(k)}</td><td class="kv-val">${esc(v)}</td></tr>`).join('') +
+      pairs.map(([k, v]) => {
+        const lineText = k + ': ' + v;
+        return `<tr><td class="kv-copy"><button class="copy-btn" title="Copy line" onclick="copyText(this, '${esc(lineText).replace(/'/g, '\\&#39;')}')">📋</button><button class="transform-btn" title="Send to Text Transform" onclick="sendToTransform('${esc(v).replace(/'/g, '\\&#39;')}')">🔣</button></td><td class="kv-key">${esc(k)}</td><td class="kv-val">${esc(v)}</td></tr>`;
+      }).join('') +
       '</table>';
   }
 
@@ -2774,6 +3218,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     corrFlow.classList.add('hidden');
     guidExtractor.classList.add('hidden');
     tokenDecoder.classList.add('hidden');
+    textWizard.classList.add('hidden');
     // Show selected
     if (view === 'trace') {
       insightsPanel.classList.remove('hidden');
@@ -2787,8 +3232,277 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
       guidExtractor.classList.remove('hidden');
     } else if (view === 'tokens') {
       tokenDecoder.classList.remove('hidden');
+    } else if (view === 'textwiz') {
+      textWizard.classList.remove('hidden');
     }
   });
+
+  // ── Text Wizard Engine ──────────────────────────────────
+  document.getElementById('textwiz-clear').addEventListener('click', () => {
+    textwizInput.value = '';
+    textwizOutput.value = '';
+    textwizError.textContent = '';
+    textwizError.classList.remove('visible');
+  });
+  document.getElementById('textwiz-swap').addEventListener('click', () => {
+    const out = textwizOutput.value;
+    textwizOutput.value = textwizInput.value;
+    textwizInput.value = out;
+    textwizError.textContent = '';
+    textwizError.classList.remove('visible');
+    runTextWizard();
+  });
+
+  // Auto-transform on input or mode change
+  let textwizDebounce = null;
+  textwizInput.addEventListener('input', () => {
+    clearTimeout(textwizDebounce);
+    textwizDebounce = setTimeout(runTextWizard, 80);
+  });
+  textwizTransform.addEventListener('change', runTextWizard);
+
+  async function runTextWizard() {
+    const input = textwizInput.value;
+    if (!input) { textwizOutput.value = ''; textwizError.textContent = ''; textwizError.classList.remove('visible'); return; }
+    const mode = textwizTransform.value;
+    textwizError.textContent = '';
+    textwizError.classList.remove('visible');
+    try {
+      textwizOutput.value = await textWizardTransform(mode, input);
+    } catch (err) {
+      textwizError.textContent = '⚠ ' + (err.message || 'Transform failed');
+      textwizError.classList.add('visible');
+      textwizOutput.value = '';
+    }
+  }
+
+  async function textWizardTransform(mode, input) {
+    switch (mode) {
+      // Base64
+      case 'text-to-base64':
+        return btoa(unescape(encodeURIComponent(input)));
+      case 'base64-to-text':
+        if (!/^[A-Za-z0-9+/\s]+=*\s*$/.test(input))
+          throw new Error('Input is not valid Base64. Expected characters: A-Z, a-z, 0-9, +, /, =');
+        try { return decodeURIComponent(escape(atob(input.replace(/\s/g, '')))); }
+        catch { throw new Error('Input is not valid Base64-encoded text'); }
+
+      // URL
+      case 'text-to-url':
+        return encodeURIComponent(input);
+      case 'url-to-text':
+        if (!/%[0-9A-Fa-f]{2}/.test(input))
+          throw new Error('Input does not contain URL-encoded sequences (e.g. %20, %3D)');
+        try { return decodeURIComponent(input); }
+        catch { throw new Error('Input contains invalid percent-encoded sequences'); }
+
+      // Hex
+      case 'text-to-hex':
+        return Array.from(new TextEncoder().encode(input)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+      case 'hex-to-text': {
+        const cleaned = input.replace(/\s+/g, '');
+        if (!/^[0-9A-Fa-f]+$/.test(cleaned))
+          throw new Error('Input is not valid hexadecimal. Expected characters: 0-9, A-F');
+        if (cleaned.length % 2 !== 0)
+          throw new Error('Hex string must have an even number of characters (each byte = 2 hex digits)');
+        return new TextDecoder().decode(new Uint8Array(cleaned.match(/.{1,2}/g).map(h => parseInt(h, 16))));
+      }
+
+      // HTML
+      case 'text-to-html': {
+        const d = document.createElement('div');
+        d.textContent = input;
+        return d.innerHTML;
+      }
+      case 'html-to-text': {
+        const d = document.createElement('div');
+        d.innerHTML = input;
+        return d.textContent;
+      }
+
+      // UTF-7
+      case 'text-to-utf7':
+        return utf7Encode(input);
+      case 'utf7-to-text':
+        try { return utf7Decode(input); }
+        catch { throw new Error('Input is not valid UTF-7 encoded text'); }
+
+      // Deflated SAML
+      case 'text-to-deflated-saml': {
+        const data = new TextEncoder().encode(input);
+        const cs = new CompressionStream('deflate-raw');
+        const writer = cs.writable.getWriter();
+        writer.write(data); writer.close();
+        const chunks = []; const reader = cs.readable.getReader();
+        while (true) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); }
+        const deflated = new Uint8Array(chunks.reduce((a, c) => a + c.length, 0));
+        let offset = 0; chunks.forEach(c => { deflated.set(c, offset); offset += c.length; });
+        return btoa(String.fromCharCode(...deflated));
+      }
+      case 'deflated-saml-to-text': {
+        const raw = input.replace(/\s/g, '');
+        if (!/^[A-Za-z0-9+/]+=*$/.test(raw))
+          throw new Error('Input is not valid Base64. Deflated SAML expects a Base64-encoded deflate-raw stream');
+        let bytes;
+        try {
+          const bin = atob(raw);
+          bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        } catch { throw new Error('Input is not valid Base64. Deflated SAML expects a Base64-encoded deflate-raw stream'); }
+        try {
+          const ds = new DecompressionStream('deflate-raw');
+          const writer = ds.writable.getWriter();
+          writer.write(bytes); writer.close();
+          const chunks = []; const reader = ds.readable.getReader();
+          while (true) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); }
+          const inflated = new Uint8Array(chunks.reduce((a, c) => a + c.length, 0));
+          let offset = 0; chunks.forEach(c => { inflated.set(c, offset); offset += c.length; });
+          return new TextDecoder().decode(inflated);
+        } catch { throw new Error('Input is valid Base64 but is not a deflate-compressed stream. Make sure this is a SAML token encoded with deflate + Base64'); }
+      }
+
+      // Hashes
+      case 'text-to-md5':
+        return md5Hash(input);
+      case 'text-to-sha1':
+        return await cryptoHash('SHA-1', input);
+      case 'text-to-sha256':
+        return await cryptoHash('SHA-256', input);
+      case 'text-to-sha384':
+        return await cryptoHash('SHA-384', input);
+      case 'text-to-sha512':
+        return await cryptoHash('SHA-512', input);
+
+      // Code formats
+      case 'text-to-csharp-bytes': {
+        const bytes = new TextEncoder().encode(input);
+        return 'new byte[] { ' + Array.from(bytes).map(b => '0x' + b.toString(16).padStart(2, '0').toUpperCase()).join(', ') + ' }';
+      }
+      case 'text-to-js-string': {
+        return JSON.stringify(input);
+      }
+
+      default:
+        throw new Error('Unknown transform: ' + mode);
+    }
+  }
+
+  async function cryptoHash(algo, text) {
+    const data = new TextEncoder().encode(text);
+    const hash = await crypto.subtle.digest(algo, data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Minimal MD5 implementation (not available in SubtleCrypto)
+  function md5Hash(str) {
+    function md5cycle(x, k) {
+      var a = x[0], b = x[1], c = x[2], d = x[3];
+      a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586);
+      c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+      a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426);
+      c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+      a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417);
+      c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+      a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101);
+      c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+      a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632);
+      c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+      a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083);
+      c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+      a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690);
+      c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+      a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784);
+      c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+      a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463);
+      c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+      a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353);
+      c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+      a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222);
+      c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+      a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835);
+      c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+      a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415);
+      c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+      a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606);
+      c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+      a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744);
+      c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+      a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379);
+      c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+      x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+    }
+    function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b); }
+    function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+    function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+    function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+    function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+    function add32(a, b) { return (a + b) & 0xFFFFFFFF; }
+    function md51(s) {
+      var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i;
+      for (i = 64; i <= n; i += 64) md5cycle(state, md5blk(s.substring(i - 64, i)));
+      s = s.substring(i - 64);
+      var tail = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+      for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+      tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+      if (i > 55) { md5cycle(state, tail); tail = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; }
+      tail[14] = n * 8;
+      md5cycle(state, tail);
+      return state;
+    }
+    function md5blk(s) {
+      var md5blks = [], i;
+      for (i = 0; i < 64; i += 4) md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i+1) << 8) + (s.charCodeAt(i+2) << 16) + (s.charCodeAt(i+3) << 24);
+      return md5blks;
+    }
+    function rhex(n) {
+      var s = '', j;
+      for (j = 0; j < 4; j++) s += ('0' + ((n >> (j * 8 + 4)) & 0x0F).toString(16) + (n >> (j * 8) & 0x0F).toString(16));
+      return s;
+    }
+    return md51(unescape(encodeURIComponent(str))).map(rhex).join('');
+  }
+
+  // UTF-7 encode/decode
+  function utf7Encode(str) {
+    let result = '';
+    let buf = '';
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      if (c >= 0x20 && c <= 0x7E && c !== 0x2B) {
+        if (buf) { result += '+' + btoa(buf) .replace(/=+$/, '') + '-'; buf = ''; }
+        result += str[i];
+      } else if (c === 0x2B) {
+        if (buf) { result += '+' + btoa(buf).replace(/=+$/, '') + '-'; buf = ''; }
+        result += '+-';
+      } else {
+        buf += String.fromCharCode((c >> 8) & 0xFF, c & 0xFF);
+      }
+    }
+    if (buf) result += '+' + btoa(buf).replace(/=+$/, '') + '-';
+    return result;
+  }
+
+  function utf7Decode(str) {
+    let result = '';
+    let i = 0;
+    while (i < str.length) {
+      if (str[i] === '+') {
+        if (str[i + 1] === '-') { result += '+'; i += 2; continue; }
+        let j = i + 1;
+        while (j < str.length && str[j] !== '-') j++;
+        const b64 = str.substring(i + 1, j);
+        const pad = b64 + '='.repeat((4 - b64.length % 4) % 4);
+        const decoded = atob(pad);
+        for (let k = 0; k < decoded.length; k += 2) {
+          result += String.fromCharCode((decoded.charCodeAt(k) << 8) | decoded.charCodeAt(k + 1));
+        }
+        i = j + 1;
+      } else {
+        result += str[i]; i++;
+      }
+    }
+    return result;
+  }
 
   // ── Error Message Extractor Engine ──────────────────────
   function extractErrorMessages() {
@@ -2921,7 +3635,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   function renderErrorList(filterText) {
     if (!currentErrorData || currentErrorData.length === 0) {
-      errorBody.innerHTML = '<div class="error-empty"><div class="icon">✅</div><p>No error responses found in this trace</p></div>';
+      errorBody.innerHTML = '<div class="tab-empty"><div class="icon">✅</div><p>No error responses found in this trace</p></div>';
       errorStatsEl.innerHTML = '';
       return;
     }
@@ -2941,7 +3655,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
 
     if (filtered.length === 0) {
-      errorBody.innerHTML = '<div class="error-empty"><div class="icon">🔍</div><p>No errors match your search</p></div>';
+      errorBody.innerHTML = '<div class="tab-empty"><div class="icon">🔍</div><p>No errors match your search</p></div>';
       errorStatsEl.innerHTML = '';
       return;
     }
@@ -3198,7 +3912,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   function renderTokenList(filterText) {
     if (!currentTokenData || currentTokenData.length === 0) {
-      tokenBody.innerHTML = '<div class="token-empty"><div class="icon">🎟️</div><p>No JWT tokens found in this trace</p></div>';
+      tokenBody.innerHTML = '<div class="tab-empty"><div class="icon">🎟️</div><p>No JWT tokens found in this trace</p></div>';
       tokenStatsEl.innerHTML = '';
       return;
     }
@@ -3225,7 +3939,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
 
     if (filtered.length === 0) {
-      tokenBody.innerHTML = '<div class="token-empty"><div class="icon">🔍</div><p>No tokens match your search</p></div>';
+      tokenBody.innerHTML = '<div class="tab-empty"><div class="icon">🔍</div><p>No tokens match your search</p></div>';
       tokenStatsEl.innerHTML = '';
       return;
     }
@@ -3435,7 +4149,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   function renderCorrFlow(filterText) {
     if (!currentCorrData || currentCorrData.length === 0) {
-      corrBody.innerHTML = '<div class="corr-empty"><div class="icon">🔗</div><p>No correlation chains found (need 2+ requests sharing a correlation header)</p></div>';
+      corrBody.innerHTML = '<div class="tab-empty"><div class="icon">🔗</div><p>No correlation chains found (need 2+ requests sharing a correlation header)</p></div>';
       corrStatsEl.innerHTML = '';
       return;
     }
@@ -3456,7 +4170,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     }
 
     if (filtered.length === 0) {
-      corrBody.innerHTML = '<div class="corr-empty"><div class="icon">🔍</div><p>No chains match your search</p></div>';
+      corrBody.innerHTML = '<div class="tab-empty"><div class="icon">🔍</div><p>No chains match your search</p></div>';
       corrStatsEl.innerHTML = '';
       return;
     }
@@ -3804,7 +4518,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
 
   function renderGuidTree(filterText) {
     if (!currentGuidData || currentGuidData.size === 0) {
-      guidBody.innerHTML = '<div class="guid-empty"><div class="icon">🔑</div><p>No GUIDs found in this trace</p></div>';
+      guidBody.innerHTML = '<div class="tab-empty"><div class="icon">🔑</div><p>No GUIDs found in this trace</p></div>';
       guidStatsEl.innerHTML = '';
       return;
     }
@@ -3846,7 +4560,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
     });
 
     if (families.size === 0) {
-      guidBody.innerHTML = '<div class="guid-empty"><div class="icon">🔍</div><p>No GUIDs match your search</p></div>';
+      guidBody.innerHTML = '<div class="tab-empty"><div class="icon">🔍</div><p>No GUIDs match your search</p></div>';
       guidStatsEl.innerHTML = '';
       return;
     }
