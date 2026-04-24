@@ -20,6 +20,7 @@ A single-page HAR (HTTP Archive) network trace analyzer. Runs entirely in the br
 - Filters: method, status group, domain, resource type
 - Quick filters: errors (4xx/5xx), slow requests, large responses, flagged
 - Flag requests for triage; copy flagged requests or full responses via context menu
+- **Exclude domain**: right-click any request → "Exclude domain" to permanently remove all entries for that domain, freeing memory on large traces. Excluded domains appear as chips in the sidebar; click ✕ to restore (re-parses original HAR).
 
 ### Detail Pane
 

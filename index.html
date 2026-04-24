@@ -118,6 +118,21 @@ header .logo {
 }
 .btn-reset-filters:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
 
+/* ── Excluded Domain Chips ─────────────────────────────── */
+.excluded-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.excluded-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 10px; font-size: 11px;
+  background: var(--red-dim); color: var(--red); border: 1px solid var(--red);
+  cursor: default; max-width: 100%; overflow: hidden;
+}
+.excluded-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.excluded-chip button {
+  background: none; border: none; color: var(--red); cursor: pointer;
+  font-size: 13px; padding: 0; line-height: 1; opacity: 0.7;
+}
+.excluded-chip button:hover { opacity: 1; }
+
 /* ── Drop Zone / Landing Hero ────────────────────────────── */
 #drop-screen {
   display: flex; flex-direction: column; align-items: center;
@@ -1460,6 +1475,11 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
           <button class="btn-reset-filters" id="btn-clear-flags" title="Remove all flagged records">🚩 Clear All Flagged</button>
         </div>
       </div>
+      <!-- Excluded Domains -->
+      <div class="sidebar-section" id="excluded-domains-section" style="display:none">
+        <h3>Excluded Domains</h3>
+        <div id="excluded-chips" class="excluded-chips"></div>
+      </div>
     </div>
     <div class="sidebar-footer">
       <a class="github-link" href="https://github.com/AMBIENTCORE/pHARser" target="_blank" rel="noopener noreferrer">
@@ -1777,6 +1797,8 @@ function sendSectionBlockToTransform(btn) {
 
   // ── State ──────────────────────────────────────────────
   let harData = null;
+  let currentHarFileName = '';
+  let excludedDomains = new Set();
   let entries = [];
   let filteredEntries = [];
   let selectedEntry = null;
@@ -1876,7 +1898,7 @@ function sendSectionBlockToTransform(btn) {
   document.body.addEventListener('drop', (e) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
-    if (f) loadFile(f);
+    if (f) { resetView(); loadFile(f); }
   });
 
   btnNewFile.addEventListener('click', resetView);
@@ -1895,6 +1917,9 @@ function sendSectionBlockToTransform(btn) {
     insightsPanel.classList.add('hidden');
     currentInsights = [];
     flaggedEntries.clear();
+    excludedDomains.clear();
+    currentHarFileName = '';
+    renderExcludedChips();
     searchInput.value = '';
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'err', 'slow', 'flagged'));
     fileInput.value = '';
@@ -1942,8 +1967,12 @@ function sendSectionBlockToTransform(btn) {
   }
 
   // ── Process HAR ────────────────────────────────────────
-  function processHar(har, fileName) {
-    const raw = har.log.entries || [];
+  function processHar(har, fileName, skipTelemetry) {
+    currentHarFileName = fileName;
+    const rawAll = har.log.entries || [];
+    const raw = excludedDomains.size > 0
+      ? rawAll.filter(e => { try { return !excludedDomains.has(new URL(e.request.url).hostname); } catch { return true; } })
+      : rawAll;
     let earliest = Infinity;
     raw.forEach(e => {
       const t = new Date(e.startedDateTime).getTime();
@@ -1984,10 +2013,12 @@ function sendSectionBlockToTransform(btn) {
     });
 
     showApp(fileName);
-    if (typeof appInsights !== 'undefined') {
-      appInsights.trackEvent({ name: 'har-loaded', properties: { fileName: fileName, entryCount: String(entries.length) } });
+    if (!skipTelemetry) {
+      if (typeof appInsights !== 'undefined') {
+        appInsights.trackEvent({ name: 'har-loaded', properties: { fileName: fileName, entryCount: String(entries.length) } });
+      }
+      fetch('/api/counter?action=harLoaded').then(r => r.json()).then(updateCounterDisplay).catch(() => {});
     }
-    fetch('/api/counter?action=harLoaded').then(r => r.json()).then(updateCounterDisplay).catch(() => {});
   }
 
   function parseUrl(urlStr) {
@@ -2036,14 +2067,36 @@ function sendSectionBlockToTransform(btn) {
     headerFilenameText.textContent = fileName;
     headerFilename.style.display = '';
 
-    // Ensure trace view is visible (may have been hidden by tab switch)
-    insightsPanel.classList.remove('hidden');
-    document.querySelector('.content-split').style.display = '';
-    document.getElementById('resize-handle').style.display = '';
+    // Preserve current active tab (default to trace)
+    const activeTab = viewTabs.querySelector('.view-btn.active');
+    const activeView = activeTab ? activeTab.dataset.view : 'trace';
+
+    // Hide all views first
+    insightsPanel.classList.add('hidden');
+    document.querySelector('.content-split').style.display = 'none';
+    document.getElementById('resize-handle').style.display = 'none';
     errorExtractor.classList.add('hidden');
     corrFlow.classList.add('hidden');
     guidExtractor.classList.add('hidden');
     tokenDecoder.classList.add('hidden');
+    textWizard.classList.add('hidden');
+
+    // Show the active view
+    if (activeView === 'trace') {
+      insightsPanel.classList.remove('hidden');
+      document.querySelector('.content-split').style.display = '';
+      document.getElementById('resize-handle').style.display = '';
+    } else if (activeView === 'errors') {
+      errorExtractor.classList.remove('hidden');
+    } else if (activeView === 'corr') {
+      corrFlow.classList.remove('hidden');
+    } else if (activeView === 'guids') {
+      guidExtractor.classList.remove('hidden');
+    } else if (activeView === 'tokens') {
+      tokenDecoder.classList.remove('hidden');
+    } else if (activeView === 'textwiz') {
+      textWizard.classList.remove('hidden');
+    }
 
     populateFilterOptions();
     renderSummary(fileName);
@@ -3074,6 +3127,8 @@ function sendSectionBlockToTransform(btn) {
       <div class="ctx-menu-sep"></div>
       <div class="ctx-menu-item${hasFlagged ? '' : ' disabled'}" data-action="copy-flagged">📋 Copy flagged requests</div>
       <div class="ctx-menu-item${hasFlagged ? '' : ' disabled'}" data-action="copy-flagged-full">📋 Copy flagged with responses</div>
+      <div class="ctx-menu-sep"></div>
+      <div class="ctx-menu-item" data-action="exclude-domain">🚫 Exclude domain: ${entry.domain}</div>
     `;
     let x = ev.clientX, y = ev.clientY;
     ctxMenu.classList.add('visible');
@@ -3113,9 +3168,47 @@ function sendSectionBlockToTransform(btn) {
           return '--- #' + e.seq + ': ' + e.method + ' ' + e.status + ' ' + e.url + ' ---\n' + body;
         });
       navigator.clipboard.writeText(blocks.join('\n\n')).catch(() => {});
+    } else if (action === 'exclude-domain') {
+      excludeDomain(ctxEntry.domain);
     }
     hideContextMenu();
   });
+
+  // ── Domain Exclusion ───────────────────────────────────
+  function excludeDomain(domain) {
+    excludedDomains.add(domain);
+    selectedEntry = null;
+    detailPane.classList.add('hidden');
+    flaggedEntries.clear();
+    processHar(harData, currentHarFileName, true);
+    renderExcludedChips();
+  }
+
+  function restoreDomain(domain) {
+    excludedDomains.delete(domain);
+    selectedEntry = null;
+    detailPane.classList.add('hidden');
+    flaggedEntries.clear();
+    processHar(harData, currentHarFileName, true);
+    renderExcludedChips();
+  }
+
+  function renderExcludedChips() {
+    const section = document.getElementById('excluded-domains-section');
+    const container = document.getElementById('excluded-chips');
+    if (excludedDomains.size === 0) {
+      section.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+    section.style.display = '';
+    container.innerHTML = [...excludedDomains].sort().map(d =>
+      `<div class="excluded-chip"><span title="${d}">${d}</span><button title="Restore domain" data-domain="${d}">&times;</button></div>`
+    ).join('');
+    container.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => restoreDomain(btn.dataset.domain));
+    });
+  }
 
   // ── Helpers ─────────────────────────────────────────────
   function getHeader(headers, name) {
