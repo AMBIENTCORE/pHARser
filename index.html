@@ -111,6 +111,11 @@ header .logo {
   transition: all 0.15s; white-space: nowrap;
 }
 .btn-sm:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.btn-sm.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.err-count-badge {
+  background: var(--accent); color: #000; font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 8px; margin-left: 4px;
+}
 .btn-reset-filters {
   width: 100%; margin-top: 4px; padding: 4px 8px; border-radius: 6px; font-size: 11px;
   cursor: pointer; border: 1px dashed var(--text-muted); background: transparent;
@@ -1596,6 +1601,7 @@ mark { background: var(--orange-dim); color: var(--orange); border-radius: 2px; 
           <input type="text" id="error-search" placeholder="Search error messages, status codes, or request #...">
         </div>
         <div class="error-stats" id="error-stats"></div>
+        <button class="btn-sm" id="btn-unique-errors" title="Show unique error messages only">🎯 Unique</button>
         <button class="btn-sm" id="btn-copy-all-errors" title="Copy all error messages to clipboard">📋 Copy All</button>
         <button class="btn-sm" id="btn-expand-all-errors">Expand All</button>
       </div>
@@ -1848,6 +1854,7 @@ function sendSectionBlockToTransform(btn) {
   const errorStatsEl = document.getElementById('error-stats');
   const errorSearchInput = document.getElementById('error-search');
   let currentErrorData = null;
+  let showUniqueErrors = false;
   let errorAllExpanded = false;
   let guidAllExpanded = false;
   const corrFlow = document.getElementById('corr-flow');
@@ -3772,6 +3779,23 @@ function sendSectionBlockToTransform(btn) {
       });
     }
 
+    // Deduplicate by message text when unique mode is on
+    let uniqueCounts = null;
+    if (showUniqueErrors) {
+      uniqueCounts = new Map();
+      const deduped = [];
+      filtered.forEach(err => {
+        const key = err.messages.map(m => m.text).join('\n');
+        if (uniqueCounts.has(key)) {
+          uniqueCounts.set(key, uniqueCounts.get(key) + 1);
+        } else {
+          uniqueCounts.set(key, 1);
+          deduped.push({ ...err, _uniqueKey: key });
+        }
+      });
+      filtered = deduped;
+    }
+
     if (filtered.length === 0) {
       errorBody.innerHTML = '<div class="tab-empty"><div class="icon">🔍</div><p>No errors match your search</p></div>';
       errorStatsEl.innerHTML = '';
@@ -3785,6 +3809,8 @@ function sendSectionBlockToTransform(btn) {
     let html = '';
     filtered.forEach(err => {
       const urlShort = truncate(err.url, 100);
+      const countBadge = (showUniqueErrors && uniqueCounts && uniqueCounts.get(err._uniqueKey) > 1)
+        ? `<span class="err-count-badge">×${uniqueCounts.get(err._uniqueKey)}</span>` : '';
       html += `<div class="error-entry" data-seq="${err.seq}">`;
       html += `<div class="error-entry-header">`;
       html += `<span class="chevron">▶</span>`;
@@ -3792,6 +3818,7 @@ function sendSectionBlockToTransform(btn) {
       html += `<span class="err-status ${err.statusClass}">${err.status || '0'}</span>`;
       html += `<span class="err-method">${err.method}</span>`;
       html += `<span class="err-url" title="${esc(err.url)}">${esc(urlShort)}</span>`;
+      html += countBadge;
       html += `<span class="err-time">${formatMs(err.time)}</span>`;
       html += `</div>`;
 
@@ -3809,7 +3836,10 @@ function sendSectionBlockToTransform(btn) {
 
     errorBody.innerHTML = html;
 
-    let statsHtml = `<span class="stat-pill">${filtered.length} errors</span>`;
+    let statsHtml = `<span class="stat-pill">${filtered.length}${showUniqueErrors ? ' unique' : ''} errors</span>`;
+    if (showUniqueErrors && currentErrorData.length !== filtered.length) {
+      statsHtml += `<span class="stat-pill">${currentErrorData.length} total</span>`;
+    }
     if (count4xx) statsHtml += `<span class="stat-pill">${count4xx} client (4xx)</span>`;
     if (count5xx) statsHtml += `<span class="stat-pill">${count5xx} server (5xx)</span>`;
     if (count0) statsHtml += `<span class="stat-pill">${count0} failed</span>`;
@@ -3838,6 +3868,14 @@ function sendSectionBlockToTransform(btn) {
 
   // Error search
   errorSearchInput.addEventListener('input', () => {
+    renderErrorList(errorSearchInput.value);
+  });
+
+  // Unique errors toggle
+  const btnUniqueErrors = document.getElementById('btn-unique-errors');
+  btnUniqueErrors.addEventListener('click', () => {
+    showUniqueErrors = !showUniqueErrors;
+    btnUniqueErrors.classList.toggle('active', showUniqueErrors);
     renderErrorList(errorSearchInput.value);
   });
 
